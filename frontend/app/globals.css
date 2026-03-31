@@ -1,0 +1,193 @@
+@import "tailwindcss";
+
+/* ─── Design tokens ─── */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* ─── Base ─── */
+html { color-scheme: dark; }
+
+body {
+  background-color: #0a0a0f;
+  color: #e4e1e9;
+  font-family: "Inter", sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background-color: rgba(199, 191, 255, 0.2);
+  color: #e4e1e9;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #0a0a0f; }
+::-webkit-scrollbar-thumb { background: #35343a; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #474555; }
+
+/* ─── Material Symbols ─── */
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  vertical-align: middle;
+  font-family: "Material Symbols Outlined" !important;
+  font-style: normal;
+  line-height: 1;
+  display: inline-block;
+  white-space: nowrap;
+  letter-spacing: normal;
+  text-transform: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Glass card ─── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+}
+
+/* ─── Data pulse dot ─── */
+.data-pulse {
+  width: 8px;
+  height: 8px;
+  background-color: #4ddada;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #4ddada;
+  flex-shrink: 0;
+}
+.data-pulse-animated {
+  animation: pulse-ring 2s ease-out infinite;
+}
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(77, 218, 218, 0.5); }
+  70%  { box-shadow: 0 0 0 8px rgba(77, 218, 218, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(77, 218, 218, 0); }
+}
+
+/* ─── Signature glow ─── */
+.signature-glow {
+  background: radial-gradient(circle at top right, rgba(199, 191, 255, 0.1), transparent 60%);
+}
+
+/* ─── Page enter animation (Emil: from scale(0.98) not scale(0)) ─── */
+.page-enter {
+  animation: page-enter 250ms var(--ease-out) forwards;
+}
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0);  }
+}
+
+/* ─── Stagger items (30-80ms intervals per Emil) ─── */
+.stagger-item { opacity: 0; transform: translateY(8px); animation: stagger-in 280ms var(--ease-out) forwards; }
+.stagger-item:nth-child(1)  { animation-delay: 0ms; }
+.stagger-item:nth-child(2)  { animation-delay: 50ms; }
+.stagger-item:nth-child(3)  { animation-delay: 100ms; }
+.stagger-item:nth-child(4)  { animation-delay: 150ms; }
+.stagger-item:nth-child(5)  { animation-delay: 200ms; }
+.stagger-item:nth-child(6)  { animation-delay: 250ms; }
+.stagger-item:nth-child(7)  { animation-delay: 300ms; }
+.stagger-item:nth-child(8)  { animation-delay: 350ms; }
+@keyframes stagger-in {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Buttons (Emil: scale(0.97) on :active, transition on transform only) ─── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  background-color: #c7bfff;
+  color: #2a009f;
+  font-weight: 700;
+  font-size: 0.875rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out), box-shadow 200ms ease;
+  box-shadow: 0 0 20px rgba(199, 191, 255, 0.25);
+  will-change: transform;
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover { box-shadow: 0 0 32px rgba(199, 191, 255, 0.45); }
+}
+.btn-primary:active { transform: scale(0.97); }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  background: rgba(255,255,255,0.05);
+  color: #c7bfff;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(255,255,255,0.08);
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out), background 200ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn-ghost:hover { background: rgba(199,191,255,0.08); }
+}
+.btn-ghost:active { transform: scale(0.97); }
+
+/* ─── Sidebar nav active transition ─── */
+.nav-link {
+  transition: background 180ms var(--ease-out), color 180ms var(--ease-out);
+}
+
+/* ─── Spinner ─── */
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(199, 191, 255, 0.15);
+  border-top-color: #c7bfff;
+  border-radius: 50%;
+  animation: spin 600ms linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── Pipeline step progress bar ─── */
+.progress-bar {
+  height: 2px;
+  background: linear-gradient(90deg, #c7bfff, #4ddada);
+  border-radius: 9999px;
+  transform-origin: left;
+  animation: grow-width 1.2s var(--ease-out) forwards;
+}
+@keyframes grow-width {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* ─── Skeleton shimmer ─── */
+.skeleton {
+  background: linear-gradient(90deg, #1f1f25 25%, #2a292f 50%, #1f1f25 75%);
+  background-size: 400% 100%;
+  animation: shimmer 1.8s ease infinite;
+  border-radius: 0.25rem;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ─── Graph nodes (orbiting animation for visual graph page) ─── */
+@keyframes orbit {
+  from { transform: translate(-50%, -50%) rotateY(0deg) translateZ(80px) rotateY(0deg); }
+  to   { transform: translate(-50%, -50%) rotateY(360deg) translateZ(80px) rotateY(-360deg); }
+}
+
+/* ─── Reduced motion compliance ─── */
+@media (prefers-reduced-motion: reduce) {
+  .page-enter, .stagger-item { animation: fade-only 200ms ease; }
+  .progress-bar, .spinner, .data-pulse-animated { animation: none; }
+  @keyframes fade-only { from { opacity: 0; } to { opacity: 1; } }
+}
