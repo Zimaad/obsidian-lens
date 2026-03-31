@@ -111,11 +111,23 @@ function GapExplorerContent() {
       const data = await res.json();
       
       // 3. Save AI response to Firestore
-      const aiMessage = { role: "assistant", content: data.response, timestamp: new Date() };
-      await updateDoc(doc(db, "chats", chatId), {
-        messages: arrayUnion(aiMessage),
-        updatedAt: serverTimestamp()
-      });
+      if (data && data.response) {
+        const aiMessage = { role: "assistant", content: data.response, timestamp: new Date() };
+        await updateDoc(doc(db, "chats", chatId), {
+          messages: arrayUnion(aiMessage),
+          updatedAt: serverTimestamp()
+        });
+      } else {
+        const errorMessage = { 
+          role: "assistant", 
+          content: "I'm having trouble connecting to the synthesis network. Please check your backend is running.", 
+          timestamp: new Date() 
+        };
+        await updateDoc(doc(db, "chats", chatId), {
+          messages: arrayUnion(errorMessage),
+          updatedAt: serverTimestamp()
+        });
+      }
 
     } catch (err) {
       console.error("Chat error:", err);
@@ -147,12 +159,9 @@ function GapExplorerContent() {
           <div>
             <p className="font-mono text-xs uppercase tracking-widest text-primary mb-1">Synthesized Frontiers</p>
             <h1 className="text-3xl font-bold text-white tracking-tight">{displayData.topic}</h1>
-            {id && <p className="text-[10px] text-on-surface-variant font-mono mt-1">ID: {id} · SECURE LINK ACTIVE</p>}
           </div>
           <div className="flex gap-2">
-            <Link href="/lab" className="btn-ghost text-xs px-4 py-2.5 rounded">
-              <span className="material-symbols-outlined text-sm">refresh</span> Re-Analyze
-            </Link>
+            {/* Action buttons could go here if needed later */}
           </div>
         </div>
 

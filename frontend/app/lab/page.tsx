@@ -17,6 +17,12 @@ const pipelineSteps = [
 
 type StepStatus = "pending" | "running" | "done";
 
+// Module-level guard to prevent parallel runs across mounts (common in Next.js Dev/Strict Mode)
+let globalAnalysisState = {
+  activeTopic: "",
+  isProcessing: false
+};
+
 function LabContent() {
   const searchParams = useSearchParams();
   const initialTopic = searchParams.get("topic") || "";
@@ -31,19 +37,30 @@ function LabContent() {
 
   const { user } = useAuth();
 
-  // Run analysis if topic is present in URL on mount
+  // Primary guard against duplicate runs on component mount/remount
+  const initiatedRef = useRef(false);
+
   useEffect(() => {
-    if (initialTopic && phase === "idle") {
+    if (initialTopic && !initiatedRef.current && phase === "idle") {
+      // Check if we already started this topic globally in the last few seconds
+      if (globalAnalysisState.isProcessing && globalAnalysisState.activeTopic === initialTopic) {
+        return;
+      }
+      
+      initiatedRef.current = true;
       setTopic(initialTopic);
-      setTimeout(() => runAnalysis(initialTopic), 100);
+      runAnalysis(initialTopic);
     }
   }, [initialTopic]);
 
   const runAnalysis = async (overriddenTopic?: string) => {
-    const currentTopic = overriddenTopic || topic.trim();
-    if (!currentTopic || phase === "running") return;
+    const currentTopic = (overriddenTopic || topic).trim();
+    if (!currentTopic || phase === "running" || globalAnalysisState.isProcessing) return;
     
     setPhase("running");
+    globalAnalysisState.isProcessing = true;
+    globalAnalysisState.activeTopic = currentTopic;
+    
     setResult(null);
     setResultId(null);
     setError(null);
@@ -51,22 +68,24 @@ function LabContent() {
     setStepTimes({});
     abortRef.current = new AbortController();
 
-    // Animate pipeline steps sequentially
-    for (const step of pipelineSteps) {
-      setStepStatuses(prev => ({ ...prev, [step.key]: "running" }));
-      await new Promise(r => setTimeout(r, step.durationMs));
-      setStepStatuses(prev => ({ ...prev, [step.key]: "done" }));
-      setStepTimes(prev => ({ ...prev, [step.key]: `${(step.durationMs / 1000).toFixed(1)}s` }));
-    }
-
-    // Call backend
     try {
+      // Animate pipeline steps sequentially
+      for (const step of pipelineSteps) {
+        if (abortRef.current?.signal.aborted) break;
+        setStepStatuses(prev => ({ ...prev, [step.key]: "running" }));
+        await new Promise(r => setTimeout(r, step.durationMs));
+        setStepStatuses(prev => ({ ...prev, [step.key]: "done" }));
+        setStepTimes(prev => ({ ...prev, [step.key]: `${(step.durationMs / 1000).toFixed(1)}s` }));
+      }
+
+      // Call backend
       const res = await fetch("http://localhost:8000/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ topic: currentTopic }),
-        signal: abortRef.current.signal,
+        signal: abortRef.current?.signal,
       });
+      
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
       const data = await res.json();
       setResult(data);
@@ -88,10 +107,13 @@ function LabContent() {
     } catch (err: any) {
       if (err.name !== "AbortError") {
         console.error("Analysis Error:", err);
-        setError(err.message || "Failed to complete analysis. Please ensure backend is running.");
+        setError(err.message || "Failed to complete analysis.");
       }
+    } finally {
+      setPhase("done");
+      globalAnalysisState.isProcessing = false;
+      globalAnalysisState.activeTopic = "";
     }
-    setPhase("done");
   };
 
   return (
@@ -113,7 +135,7 @@ function LabContent() {
                 onChange={e => setTopic(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && runAnalysis()}
                 placeholder="Enter research topic..."
-                className="w-full bg-surface-container-lowest text-on-surface border border-outline-variant/20 rounded-lg pl-11 pr-4 py-3.5 text-sm focus:outline-none focus:border-secondary/50 transition-colors duration-200"
+                className="w-full bg-surface-container-lowest text-on-surface border border-outline-variant/20 rounded-lg pl-11 pr-4 py-3.5 text-sm focus:outline-none focus:border-secondary/50 placeholder:text-outline-variant transition-colors duration-200"
               />
             </div>
             <button
@@ -122,7 +144,7 @@ function LabContent() {
               className="btn-primary disabled:opacity-50"
             >
               {phase === "running" ? <div className="spinner" /> : (
-                <>Run Analysis</>
+                <><span className="material-symbols-outlined text-base">play_arrow</span> Run Analysis</>
               )}
             </button>
           </div>
@@ -156,27 +178,32 @@ function LabContent() {
 
           <div className="lg:col-span-3 glass-card border border-white/[0.05] rounded-xl p-6 stagger-item">
             <p className="font-mono text-xs uppercase tracking-widest text-primary mb-5">Lab Feed</p>
-            {/* Feed Content */}
             {(phase === "done" || result) && (
               <div className="space-y-4">
                 {error && <div className="text-xs text-error">{error}</div>}
                 {result?.gaps && result.gaps.length > 0 ? (
                   <>
-                    <p className="text-xs text-on-surface-variant uppercase font-mono">Gaps Detected</p>
+                    <p className="text-xs text-on-surface-variant uppercase font-mono tracking-wider">{result.gaps.length} Gaps Detected</p>
                     <div className="space-y-2">
                       {result.gaps.slice(0, 3).map((g: any, i: number) => (
                         <div key={i} className="p-3 bg-white/[0.02] rounded border border-white/[0.04]">
-                          <p className="text-sm text-white">{g.gap || g.description}</p>
+                          <p className="text-sm text-white font-semibold mb-1">{g.title || "Observation"}</p>
+                          <p className="text-xs text-on-surface-variant line-clamp-2">{g.description || g.gap}</p>
                         </div>
                       ))}
                     </div>
                     <div className="pt-4 flex gap-3">
                       <Link href={resultId ? `/gap-explorer?id=${resultId}` : "/gap-explorer"} className="btn-primary text-xs px-4 py-2.5 rounded">
-                        View Full Analysis
+                        <span className="material-symbols-outlined text-sm">explore</span> View Full Analysis
                       </Link>
                     </div>
                   </>
-                ) : phase === "done" && <p className="text-sm text-outline">No gaps found.</p>}
+                ) : phase === "done" && !error && (
+                  <div className="flex flex-col items-center justify-center h-40 opacity-40">
+                    <span className="material-symbols-outlined text-3xl mb-2">sentiment_neutral</span>
+                    <p className="text-xs">No significant gaps detected in this paper cluster.</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -188,7 +215,7 @@ function LabContent() {
 
 export default function LabPage() {
   return (
-    <Suspense fallback={<div>Loading Lab...</div>}>
+    <Suspense fallback={<div className="p-10 text-white font-mono text-xs">Initializing Analysis Lab...</div>}>
       <LabContent />
     </Suspense>
   );

@@ -1,14 +1,10 @@
 import json
-from langchain_groq import ChatGroq
 from state import ResearchState
-from dotenv import load_dotenv
-
-load_dotenv()
-
-llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.3)
+from utils.llm import get_llm
 
 def gap_synthesizer(state: ResearchState) -> ResearchState:
-    print("[Gap Synthesizer] Identifying research gaps...")
+    print("[Gap Synthesizer] Identifying research gaps with deep synthesis...")
+    llm = get_llm(temperature=0.3)
 
     paper_titles = [p.get("title") for p in state["papers"]]
     claims_summary = "\n".join([
@@ -16,35 +12,38 @@ def gap_synthesizer(state: ResearchState) -> ResearchState:
         for c in state["claims"]
     ])
     contradictions_summary = "\n".join([
-        f"- {c['paper_a']} vs {c['paper_b']}: {c['contradiction']}"
+        f"- {c['a']} vs {c['b']}: {c['analysis']}"
         for c in state["contradictions"]
-    ]) or "None detected"
+    ]) if state.get("contradictions") else "None detected"
 
-    prompt = f"""You are a senior research strategist. Based on the research landscape below, identify 4-5 specific, actionable research gaps.
+    prompt = f"""You are a senior research strategist specializing in '{state['topic']}'. 
+Based on the research landscape below, identify 4-5 high-impact, specific research gaps.
 
 Topic: {state['topic']}
 
+Research Context:
 Papers surveyed:
 {chr(10).join(f'- {t}' for t in paper_titles)}
 
-Key claims across papers:
+Core Claims:
 {claims_summary}
 
-Contradictions found:
+Detected Contradictions and Tensions:
 {contradictions_summary}
 
-A gap is one of:
-1. Something no paper has studied yet but logically should
-2. A contradiction no one has resolved experimentally
-3. An intersection of two subfields no one has explored
+Rules for Gap Identification:
+1. Structural Gap: A scenario where current architectures or methodologies logically stop working.
+2. Contradictory Gap: Where two established bodies of work suggest opposing outcomes, but no cross-experimental validation exists.
+3. Intersection Gap: A novel synthesis of two disconnected sub-fields found in the literature.
 
-Return ONLY a JSON array, no explanation, no markdown, no backticks.
+Return ONLY a JSON array. Each gap should be extremely detailed.
 Format: [
   {{
-    "gap": "specific description of the gap",
-    "type": "unexplored|unresolved_contradiction|intersection",
-    "why_it_matters": "why filling this gap is important",
-    "suggested_approach": "brief method to address this gap",
+    "title": "Short, catchy headline of the gap",
+    "description": "Very detailed 2-3 sentence technical description of the gap.",
+    "type": "structural|contradictory|intersection",
+    "why_it_matters": "The specific downstream scientific or technological impact of filling this gap.",
+    "suggested_approach": "A concrete technical path forward (mention specific methods or models).",
     "confidence": "high|medium|low"
   }}
 ]"""
@@ -52,8 +51,14 @@ Format: [
     try:
         response = llm.invoke(prompt)
         raw = response.content.strip()
+        # Handle cases where LLM includes extra text
+        if "```json" in raw:
+            raw = raw.split("```json")[1].split("```")[0].strip()
+        elif "```" in raw:
+            raw = raw.split("```")[1].split("```")[0].strip()
+            
         gaps = json.loads(raw)
-        print(f"[Gap Synthesizer] Found {len(gaps)} gaps")
+        print(f"[Gap Synthesizer] Produced {len(gaps)} high-detail gaps")
         return {**state, "gaps": gaps}
     except Exception as e:
         print(f"[Gap Synthesizer] Failed: {e}")

@@ -1,9 +1,11 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "../context/AuthContext";
 
 export default function TopNav() {
   const pathname = usePathname();
+  const { user } = useAuth();
   const isPublic = pathname === "/" || pathname === "/login";
 
   return (
@@ -38,16 +40,22 @@ export default function TopNav() {
             className="bg-transparent border-none text-xs focus:ring-0 focus:outline-none text-white placeholder-slate-500 w-28"
           />
         </div>
-        <button className="text-slate-400 hover:text-white transition-colors duration-200 active:scale-95 cursor-pointer p-1">
-          <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>notifications</span>
-        </button>
-        <Link href="/login">
-          <img
-            src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=80&auto=format&fit=crop"
-            alt="Profile"
-            className="w-7 h-7 rounded-full border border-violet-500/30 cursor-pointer hover:border-violet-400/60 transition-colors duration-200"
-          />
-        </Link>
+        
+        {user ? (
+          <div className="flex items-center gap-3">
+            <Link href="/settings" className="flex items-center group">
+              <img
+                src={user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || user.email || "User")}&background=8B5CF6&color=fff`}
+                alt="Profile"
+                className="w-7 h-7 rounded-full border border-violet-500/30 group-hover:border-violet-400/60 transition-colors duration-200"
+              />
+            </Link>
+          </div>
+        ) : (
+          <Link href="/login" className="btn-ghost text-xs px-4 py-1.5 rounded-full">
+            Login
+          </Link>
+        )}
       </div>
     </nav>
   );

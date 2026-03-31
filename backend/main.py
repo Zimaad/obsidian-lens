@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from graph.pipeline import build_pipeline
+from utils.llm import get_llm
 
 app = FastAPI(title="Research Gap Finder")
 
@@ -16,6 +17,11 @@ pipeline = build_pipeline()
 
 class TopicRequest(BaseModel):
     topic: str
+
+class ChatRequest(BaseModel):
+    message: str
+    topic: str
+    context: str = ""
 
 @app.get("/")
 def root():
@@ -40,3 +46,21 @@ def analyze(req: TopicRequest):
         "gaps": result["gaps"],
         "error": result.get("error", "")
     }
+
+@app.post("/chat")
+def chat(req: ChatRequest):
+    llm = get_llm(temperature=0.7)
+    
+    prompt = f"""You are a senior research analyst discussing this topic: {req.topic}.
+Relevant Context (Discovered Gaps): {req.context}
+
+User question: {req.message}
+
+Respond intelligently as a professional researcher. Keep it insightful but concise.
+If the user asks for more detail on a gap, explain the technical intuition behind it."""
+
+    try:
+        response = llm.invoke(prompt)
+        return {"response": response.content.strip()}
+    except Exception as e:
+        return {"response": f"I had trouble connecting to the neural interface: {str(e)}", "error": str(e)}

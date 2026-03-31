@@ -1,8 +1,10 @@
 "use client";
 import AppLayout from "../components/AppLayout";
 import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
 
 export default function SettingsPage() {
+  const { user } = useAuth();
   const [geminiKey, setGeminiKey] = useState("AIza••••••••••••••••XYZ");
   const [semanticKey, setSemanticKey] = useState("sk_••••••••••••••••••abc");
   const [maxPapers, setMaxPapers] = useState("100");
@@ -14,6 +16,8 @@ export default function SettingsPage() {
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
+
+  const profileImg = user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.displayName || user?.email || "User")}&background=8B5CF6&color=fff`;
 
   return (
     <AppLayout>
@@ -29,14 +33,16 @@ export default function SettingsPage() {
         <section className="glass-card border border-white/[0.05] rounded-xl p-6 mb-6 stagger-item">
           <div className="flex items-center gap-4">
             <img
-              src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=120&auto=format&fit=crop"
-              alt="Adrian Thorne"
-              className="w-14 h-14 rounded-xl border border-violet-500/30"
+              src={profileImg}
+              alt={user?.displayName || "Profile"}
+              className="w-14 h-14 rounded-xl border border-violet-500/30 object-cover"
             />
             <div>
-              <h2 className="text-lg font-bold text-white">Adrian Thorne</h2>
-              <p className="text-sm text-on-surface-variant">researcher@obsidian.io</p>
-              <span className="inline-block mt-1 font-mono text-[9px] px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-primary uppercase tracking-wider">Pro Plan</span>
+              <h2 className="text-lg font-bold text-white">{user?.displayName || "Research Guest"}</h2>
+              <p className="text-sm text-on-surface-variant font-mono">{user?.email || "guest@obsidian.io"}</p>
+              <span className="inline-block mt-1 font-mono text-[9px] px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-primary uppercase tracking-wider">
+                {user ? "Standard Researcher" : "Public View"}
+              </span>
             </div>
             <button className="ml-auto btn-ghost text-xs px-4 py-2 rounded">Edit Profile</button>
           </div>

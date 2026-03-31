@@ -1,42 +1,49 @@
 import json
-from langchain_groq import ChatGroq
 from state import ResearchState
-from dotenv import load_dotenv
-
-load_dotenv()
-
-llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.2)
+from utils.llm import get_llm
 
 def analyst_agent(state: ResearchState) -> ResearchState:
-    print("[Analyst Agent] Detecting contradictions...")
+    print("[Analyst Agent] Detecting high-fidelity contradictions...")
+    llm = get_llm(temperature=0.2)
 
     claims_summary = "\n".join([
         f"- [{c['year']}] {c['paper_title']}: {[cl['claim'] for cl in c['claims']]}"
         for c in state["claims"]
     ])
 
-    prompt = f"""You are a critical research analyst. Analyze these claims from different papers and identify contradictions, disagreements, or tensions between them.
+    prompt = f"""You are a deep-learning research analyst. Analyze the following claims across various papers and identify significant contradictions, scientific disagreements, or empirical tensions.
 
-Claims:
+Consider:
+- Differing results on the same benchmark
+- Opposing theoretical claims
+- Divergent predictions for future scaling 
+
+Claims for Context:
 {claims_summary}
 
-Return ONLY a JSON array, no explanation, no markdown, no backticks.
+Your task is to synthesize these into "Contradiction Pairs".
+Return ONLY a JSON array. 
 Format: [
   {{
-    "paper_a": "title of first paper",
-    "paper_b": "title of second paper",
-    "contradiction": "clear description of what they disagree on",
-    "severity": "high|medium|low"
+    "a": "Detailed scientific claim from Paper X",
+    "b": "Opposing scientific claim from Paper Y",
+    "analysis": "Sophisticated technical analysis of why these two claims conflict (e.g., hidden variables, differing hyper-parameters, or fundamental theoretical divergence).",
+    "trend": "How this contradiction has evolved in the literature (if discernible).",
+    "severity": "critical|high|medium"
   }}
-]
-
-If no contradictions exist, return an empty array: []"""
+]"""
 
     try:
         response = llm.invoke(prompt)
         raw = response.content.strip()
+        # Handle cases where LLM includes extra text
+        if "```json" in raw:
+            raw = raw.split("```json")[1].split("```")[0].strip()
+        elif "```" in raw:
+            raw = raw.split("```")[1].split("```")[0].strip()
+
         contradictions = json.loads(raw)
-        print(f"[Analyst Agent] Found {len(contradictions)} contradictions")
+        print(f"[Analyst Agent] Identified {len(contradictions)} high-detail tensions")
         return {**state, "contradictions": contradictions}
     except Exception as e:
         print(f"[Analyst Agent] Failed: {e}")
