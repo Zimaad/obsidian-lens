@@ -1,7 +1,11 @@
 "use client";
 import AppLayout from "../components/AppLayout";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
+import { useAuth } from "../context/AuthContext";
+import { db } from "../lib/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useSearchParams } from "next/navigation";
 
 const pipelineSteps = [
   { key: "search",        label: "Searching papers...",          icon: "search",        durationMs: 1200 },
@@ -13,30 +17,35 @@ const pipelineSteps = [
 
 type StepStatus = "pending" | "running" | "done";
 
-interface FeedItem {
-  time: string;
-  title: string;
-  desc: string;
-}
-
-const feedItems: FeedItem[] = [
-  { time: "0.4s", title: "Quantum Entanglement Persistence in Biological Systems", desc: "Preliminary synthesis suggests a significant contradiction between recent photon-scattering data and established metabolic decay models." },
-  { time: "Global Sync", title: "Matching your search against 4M+ new pre-prints published this week.", desc: "" },
-];
-
-export default function LabPage() {
-  const [topic, setTopic] = useState("");
+function LabContent() {
+  const searchParams = useSearchParams();
+  const initialTopic = searchParams.get("topic") || "";
+  const [topic, setTopic] = useState(initialTopic);
   const [phase, setPhase] = useState<"idle" | "running" | "done">("idle");
   const [stepStatuses, setStepStatuses] = useState<Record<string, StepStatus>>({});
   const [stepTimes, setStepTimes] = useState<Record<string, string>>({});
-  const [result, setResult] = useState<{ gaps: object[]; contradictions: object[]; papers: object[]; claims: object[] } | null>(null);
+  const [result, setResult] = useState<{ gaps: any[]; contradictions: any[]; papers: any[]; claims: any[] } | null>(null);
+  const [resultId, setResultId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  const runAnalysis = async () => {
-    if (!topic.trim() || phase === "running") return;
+  const { user } = useAuth();
+
+  // Run analysis if topic is present in URL on mount
+  useEffect(() => {
+    if (initialTopic && phase === "idle") {
+      setTopic(initialTopic);
+      setTimeout(() => runAnalysis(initialTopic), 100);
+    }
+  }, [initialTopic]);
+
+  const runAnalysis = async (overriddenTopic?: string) => {
+    const currentTopic = overriddenTopic || topic.trim();
+    if (!currentTopic || phase === "running") return;
+    
     setPhase("running");
     setResult(null);
+    setResultId(null);
     setError(null);
     setStepStatuses({});
     setStepTimes({});
@@ -55,15 +64,31 @@ export default function LabPage() {
       const res = await fetch("http://localhost:8000/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic }),
+        body: JSON.stringify({ topic: currentTopic }),
         signal: abortRef.current.signal,
       });
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
       const data = await res.json();
       setResult(data);
-    } catch (err: unknown) {
-      if ((err as Error).name !== "AbortError") {
-        setError("Analysis complete — using cached results for display.");
+
+      // Persist to Firestore if logged in
+      if (user) {
+        const docRef = await addDoc(collection(db, "analyses"), {
+          userId: user.uid,
+          topic: data.topic,
+          papers: data.papers || [],
+          gaps: data.gaps || [],
+          contradictions: data.contradictions || [],
+          claims: data.claims || [],
+          status: "complete",
+          createdAt: serverTimestamp(),
+        });
+        setResultId(docRef.id);
+      }
+    } catch (err: any) {
+      if (err.name !== "AbortError") {
+        console.error("Analysis Error:", err);
+        setError(err.message || "Failed to complete analysis. Please ensure backend is running.");
       }
     }
     setPhase("done");
@@ -72,14 +97,12 @@ export default function LabPage() {
   return (
     <AppLayout>
       <div className="p-8 max-w-7xl mx-auto page-enter">
-        {/* Header */}
         <div className="mb-8">
           <p className="font-mono text-xs uppercase tracking-widest text-primary mb-1">The Lab</p>
           <h1 className="text-3xl font-bold text-white tracking-tight">Analysis Lab</h1>
           <p className="text-on-surface-variant text-sm mt-2">Initiate deep semantic cross-analysis. Synthesize hidden contradictions and research gaps from millions of peer-reviewed sources.</p>
         </div>
 
-        {/* Input */}
         <div className="glass-card border border-white/[0.05] rounded-xl p-6 mb-8 stagger-item">
           <div className="flex gap-3">
             <div className="flex-1 relative">
@@ -89,142 +112,84 @@ export default function LabPage() {
                 value={topic}
                 onChange={e => setTopic(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && runAnalysis()}
-                placeholder="Enter research topic, e.g. 'transformer attention in low-resource NLP'..."
-                className="w-full bg-surface-container-lowest text-on-surface border border-outline-variant/20 rounded-lg pl-11 pr-4 py-3.5 text-sm focus:outline-none focus:border-secondary/50 placeholder:text-outline-variant transition-colors duration-200"
+                placeholder="Enter research topic..."
+                className="w-full bg-surface-container-lowest text-on-surface border border-outline-variant/20 rounded-lg pl-11 pr-4 py-3.5 text-sm focus:outline-none focus:border-secondary/50 transition-colors duration-200"
               />
             </div>
             <button
-              onClick={runAnalysis}
+              onClick={() => runAnalysis()}
               disabled={phase === "running" || !topic.trim()}
-              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary disabled:opacity-50"
             >
               {phase === "running" ? <div className="spinner" /> : (
-                <><span className="material-symbols-outlined text-base">play_arrow</span> Run Analysis</>
+                <>Run Analysis</>
               )}
             </button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* Pipeline status */}
-          <div className="lg:col-span-2 glass-card border border-white/[0.05] rounded-xl p-6 stagger-item" style={{ animationDelay: "80ms" }}>
+          <div className="lg:col-span-2 glass-card border border-white/[0.05] rounded-xl p-6 stagger-item">
             <p className="font-mono text-xs uppercase tracking-widest text-primary mb-5">Analysis Pipeline</p>
             <div className="space-y-4">
-              {pipelineSteps.map((step, i) => {
+              {pipelineSteps.map((step) => {
                 const status = stepStatuses[step.key] ?? "pending";
                 return (
                   <div key={step.key} className="flex items-center gap-3">
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors duration-280
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 
                       ${status === "done" ? "bg-secondary/15 text-secondary" :
                         status === "running" ? "bg-primary/15 text-primary" : "bg-surface-container text-outline"}`}>
                       {status === "running" ? (
                         <div className="spinner" style={{ width: 14, height: 14, borderWidth: 1.5 }} />
                       ) : (
-                        <span className="material-symbols-outlined" style={{ fontSize: "15px", fontVariationSettings: status === "done" ? "'FILL' 1" : "'FILL' 0" }}>
-                          {status === "done" ? "check_circle" : step.icon}
-                        </span>
+                        <span className="material-symbols-outlined" style={{ fontSize: "15px" }}>{status === "done" ? "check_circle" : step.icon}</span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm transition-colors duration-200 ${status === "pending" ? "text-outline" : "text-on-surface"}`}>
-                        {step.label}
-                      </p>
-                      {status === "done" && (
-                        <p className="text-[10px] text-secondary font-mono">Completed ({stepTimes[step.key]})</p>
-                      )}
+                      <p className={`text-sm ${status === "pending" ? "text-outline" : "text-on-surface"}`}>{step.label}</p>
                     </div>
                   </div>
                 );
               })}
-
-              {/* Progress bar at bottom of pipeline */}
-              {phase !== "idle" && (
-                <div className="mt-4 pt-4 border-t border-white/[0.05]">
-                  <div className="h-[2px] bg-surface-container rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-[width] duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]"
-                      style={{ width: `${(Object.values(stepStatuses).filter(s => s === "done").length / pipelineSteps.length) * 100}%` }}
-                    />
-                  </div>
-                  <p className="font-mono text-[10px] text-on-surface-variant mt-2 uppercase tracking-wider">
-                    {phase === "done" ? "Analysis complete" : "Processing..."}
-                  </p>
-                </div>
-              )}
             </div>
           </div>
 
-          {/* Lab Feed / Results */}
-          <div className="lg:col-span-3 glass-card border border-white/[0.05] rounded-xl p-6 stagger-item" style={{ animationDelay: "140ms" }}>
+          <div className="lg:col-span-3 glass-card border border-white/[0.05] rounded-xl p-6 stagger-item">
             <p className="font-mono text-xs uppercase tracking-widest text-primary mb-5">Lab Feed</p>
-
-            {phase === "idle" && (
-              <div className="flex flex-col items-center justify-center h-56 text-center">
-                <span className="material-symbols-outlined text-outline text-5xl mb-3">biotech</span>
-                <p className="text-on-surface-variant text-sm">Enter a topic and run analysis to see live results here.</p>
-              </div>
-            )}
-
-            {phase === "running" && !result && (
-              <div className="space-y-4">
-                {feedItems.map((item, i) => (
-                  <div key={i} className="border-l-2 border-primary/30 pl-4 stagger-item" style={{ animationDelay: `${i * 100}ms` }}>
-                    {item.time && <span className="font-mono text-[10px] text-secondary">{item.time}</span>}
-                    <p className="text-sm font-semibold text-white mt-1">{item.title}</p>
-                    {item.desc && <p className="text-xs text-on-surface-variant mt-1">{item.desc}</p>}
-                  </div>
-                ))}
-                <div className="space-y-2 mt-4">
-                  {[1,2,3].map(i => <div key={i} className="skeleton h-10 rounded-lg" />)}
-                </div>
-              </div>
-            )}
-
+            {/* Feed Content */}
             {(phase === "done" || result) && (
               <div className="space-y-4">
-                {error && (
-                  <div className="px-4 py-3 rounded-lg bg-secondary/5 border border-secondary/20 text-xs text-secondary font-mono">{error}</div>
-                )}
-
+                {error && <div className="text-xs text-error">{error}</div>}
                 {result?.gaps && result.gaps.length > 0 ? (
                   <>
-                    <p className="text-xs text-on-surface-variant font-mono uppercase tracking-wider">{result.gaps.length} gaps found for <span className="text-white">{topic}</span></p>
-                    <div className="space-y-3">
-                      {result.gaps.map((gap: object, i: number) => {
-                        const g = gap as { gap?: string; description?: string };
-                        return (
-                          <div key={i} className="glass-card border border-white/[0.04] rounded-lg p-4 stagger-item" style={{ animationDelay: `${i * 50}ms` }}>
-                            <p className="text-xs font-mono text-primary mb-1">GAP {String(i + 1).padStart(2, "0")}</p>
-                            <p className="text-sm text-white">{g.gap ?? g.description ?? JSON.stringify(g)}</p>
-                          </div>
-                        );
-                      })}
+                    <p className="text-xs text-on-surface-variant uppercase font-mono">Gaps Detected</p>
+                    <div className="space-y-2">
+                      {result.gaps.slice(0, 3).map((g: any, i: number) => (
+                        <div key={i} className="p-3 bg-white/[0.02] rounded border border-white/[0.04]">
+                          <p className="text-sm text-white">{g.gap || g.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="pt-4 flex gap-3">
+                      <Link href={resultId ? `/gap-explorer?id=${resultId}` : "/gap-explorer"} className="btn-primary text-xs px-4 py-2.5 rounded">
+                        View Full Analysis
+                      </Link>
                     </div>
                   </>
-                ) : phase === "done" ? (
-                  <div className="space-y-3">
-                    {feedItems.map((item, i) => (
-                      <div key={i} className="border-l-2 border-secondary/40 pl-4 stagger-item" style={{ animationDelay: `${i * 60}ms` }}>
-                        <span className="font-mono text-[10px] text-secondary">{item.time}</span>
-                        <p className="text-sm font-semibold text-white mt-1">{item.title}</p>
-                        {item.desc && <p className="text-xs text-on-surface-variant mt-1">{item.desc}</p>}
-                      </div>
-                    ))}
-                    <div className="pt-4 flex gap-3">
-                      <Link href="/gap-explorer" className="btn-primary text-xs px-4 py-2.5 rounded">
-                        <span className="material-symbols-outlined text-sm">explore</span> View Gaps
-                      </Link>
-                      <Link href="/graph" className="btn-ghost text-xs px-4 py-2.5 rounded">
-                        <span className="material-symbols-outlined text-sm">hub</span> View Graph
-                      </Link>
-                    </div>
-                  </div>
-                ) : null}
+                ) : phase === "done" && <p className="text-sm text-outline">No gaps found.</p>}
               </div>
             )}
           </div>
         </div>
       </div>
     </AppLayout>
+  );
+}
+
+export default function LabPage() {
+  return (
+    <Suspense fallback={<div>Loading Lab...</div>}>
+      <LabContent />
+    </Suspense>
   );
 }

@@ -1,21 +1,56 @@
+"use client";
 import AppLayout from "../components/AppLayout";
 import Link from "next/link";
-
-const recentAnalyses = [
-  { id: "OBS-4402", title: "Neural Plasticity in Deep Sleep Cycles", desc: "Cross-referencing neuro-imaging datasets with cognitive behavioral therapy outcomes in clinical trials 2020-2024.", status: "complete" },
-  { id: "OBS-9912", title: "Solid-State Battery Energy Density", desc: "Synthesizing material science publications regarding lithium-sulfur stability and ceramic electrolytes.", status: "complete" },
-  { id: "OBS-1022", title: "Microplastic Infiltration in Alpine Soils", desc: "Metanalysis of environmental impact studies vs chemical industry toxicity reports.", status: "running" },
-  { id: "OBS-5066", title: "Post-Quantum Cryptography Benchmarks", desc: "Comprehensive testing of NIST-approved algorithms against simulated Shor's algorithm instances.", status: "complete" },
-];
-
-const stats = [
-  { label: "Gaps Discovered", value: "1,284" },
-  { label: "Papers Indexed", value: "42.9k" },
-  { label: "Contradictions Found", value: "86" },
-  { label: "Analyses Run", value: "3,502" },
-];
+import { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { db } from "../lib/firebase";
+import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+  const [analyses, setAnalyses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [topicInput, setTopicInput] = useState("");
+
+  useEffect(() => {
+    async function fetchAnalyses() {
+      if (!user) return;
+      try {
+        const q = query(
+          collection(db, "analyses"),
+          where("userId", "==", user.uid),
+          orderBy("createdAt", "desc"),
+          limit(10)
+        );
+        const querySnapshot = await getDocs(q);
+        const fetched = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          // Format date for display
+          dateLabel: doc.data().createdAt?.toDate().toLocaleDateString() || "Recent"
+        }));
+        setAnalyses(fetched);
+      } catch (error) {
+        console.error("Error fetching analyses:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAnalyses();
+  }, [user]);
+
+  // Aggregate stats from fetched analyses (simplified for now)
+  const totalGaps = analyses.reduce((acc, curr) => acc + (curr.gaps?.length || 0), 0);
+  const totalPapers = analyses.reduce((acc, curr) => acc + (curr.papers?.length || 0), 0);
+  const totalContradictions = analyses.reduce((acc, curr) => acc + (curr.contradictions?.length || 0), 0);
+
+  const stats = [
+    { label: "Gaps Discovered", value: totalGaps.toString() },
+    { label: "Papers Indexed", value: totalPapers.toString() },
+    { label: "Contradictions", value: totalContradictions.toString() },
+    { label: "Analyses Run", value: analyses.length.toString() },
+  ];
+
   return (
     <AppLayout>
       <div className="p-8 max-w-7xl mx-auto page-enter">
@@ -48,10 +83,15 @@ export default function DashboardPage() {
           <div className="flex gap-3">
             <input
               type="text"
+              value={topicInput}
+              onChange={(e) => setTopicInput(e.target.value)}
               placeholder="Enter research topic, e.g. 'transformer attention in low-resource NLP'..."
               className="flex-1 bg-surface-container-lowest text-on-surface border border-outline-variant/20 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-secondary/50 placeholder:text-outline-variant transition-colors duration-200"
             />
-            <Link href="/lab" className="btn-primary whitespace-nowrap">
+            <Link 
+              href={`/lab?topic=${encodeURIComponent(topicInput)}`}
+              className={`btn-primary whitespace-nowrap ${!topicInput.trim() ? "opacity-50 pointer-events-none" : ""}`}
+            >
               <span className="material-symbols-outlined text-base">send</span>
               Analyze
             </Link>
@@ -62,7 +102,7 @@ export default function DashboardPage() {
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold text-white">Recent Analyses</h2>
-            <p className="text-xs text-on-surface-variant font-mono">Last 24 hours activity</p>
+            <p className="text-xs text-on-surface-variant font-mono">Based on your activity</p>
           </div>
           <Link href="/library" className="font-mono text-xs text-primary hover:text-white transition-colors duration-200 uppercase tracking-widest flex items-center gap-1">
             View all
@@ -71,30 +111,40 @@ export default function DashboardPage() {
         </div>
 
         <div className="space-y-3">
-          {recentAnalyses.map((item, i) => (
-            <div
-              key={item.id}
-              className="glass-card border border-white/[0.05] rounded-xl p-5 flex items-start justify-between gap-4 hover:bg-white/[0.04] transition-colors duration-200 cursor-pointer stagger-item"
-              style={{ animationDelay: `${(i + 5) * 60}ms` }}
-            >
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-1.5">
-                  <span className="font-mono text-[10px] text-outline uppercase tracking-widest">{item.id}</span>
-                  {item.status === "running" && (
-                    <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-secondary/10 border border-secondary/20">
-                      <div className="data-pulse" style={{ width: 5, height: 5 }} />
-                      <span className="font-mono text-[9px] text-secondary uppercase">Running</span>
-                    </span>
-                  )}
-                </div>
-                <h3 className="text-sm font-semibold text-white truncate">{item.title}</h3>
-                <p className="text-xs text-on-surface-variant mt-1 line-clamp-2">{item.desc}</p>
-              </div>
-              <Link href="/gap-explorer" className="shrink-0 p-2 rounded-lg hover:bg-white/[0.06] transition-colors duration-180">
-                <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: "18px" }}>arrow_outward</span>
-              </Link>
+          {loading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map(i => <div key={i} className="skeleton h-24 rounded-xl" />)}
             </div>
-          ))}
+          ) : analyses.length === 0 ? (
+            <div className="glass-card border border-white/[0.05] rounded-xl p-10 text-center">
+              <span className="material-symbols-outlined text-outline text-4xl mb-3 block">history</span>
+              <p className="text-on-surface-variant text-sm">No analyses found. Start your first research scan above.</p>
+            </div>
+          ) : (
+            analyses.map((item, i) => (
+              <div
+                key={item.id}
+                className="glass-card border border-white/[0.05] rounded-xl p-5 flex items-start justify-between gap-4 hover:bg-white/[0.04] transition-colors duration-200 cursor-pointer stagger-item"
+                style={{ animationDelay: `${(i + 5) * 60}ms` }}
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-1.5">
+                    <span className="font-mono text-[10px] text-outline uppercase tracking-widest">{item.dateLabel}</span>
+                    <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20">
+                      <span className="font-mono text-[9px] text-primary uppercase">{item.status}</span>
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-semibold text-white truncate">{item.topic}</h3>
+                  <p className="text-xs text-on-surface-variant mt-1 line-clamp-1">
+                    {item.gaps?.length || 0} gaps · {item.contradictions?.length || 0} contradictions · {item.papers?.length || 0} papers
+                  </p>
+                </div>
+                <Link href={`/gap-explorer?id=${item.id}`} className="shrink-0 p-2 rounded-lg hover:bg-white/[0.06] transition-colors duration-180">
+                  <span className="material-symbols-outlined text-on-surface-variant" style={{ fontSize: "18px" }}>arrow_outward</span>
+                </Link>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Batch upload CTA */}

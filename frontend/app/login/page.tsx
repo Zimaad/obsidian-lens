@@ -1,21 +1,74 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup
+} from "firebase/auth";
+import { auth, db } from "@/app/lib/firebase";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { useAuth } from "@/app/context/AuthContext";
 
 export default function LoginPage() {
   const [tab, setTab] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
+  const { user, signInWithGoogle } = useAuth();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      router.push("/dashboard");
+    }
+  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate brief auth delay then navigate
-    await new Promise(r => setTimeout(r, 800));
-    router.push("/dashboard");
+    setError("");
+
+    try {
+      if (tab === "login") {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        // Create user record in firestore
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+          email: userCredential.user.email,
+          createdAt: serverTimestamp(),
+          role: "researcher"
+        });
+      }
+      router.push("/dashboard");
+    } catch (err: any) {
+      console.error("Auth Error:", err);
+      // Friendly messages
+      if (err.code === "auth/user-not-found") setError("No account found with this email.");
+      else if (err.code === "auth/wrong-password") setError("Incorrect password.");
+      else if (err.code === "auth/email-already-in-use") setError("Email already registered.");
+      else if (err.code === "auth/weak-password") setError("Password should be at least 6 characters.");
+      else setError("Failed to authenticate. Please check your credentials.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      await signInWithGoogle();
+      router.push("/dashboard");
+    } catch (err) {
+      setError("Google sign-in failed.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -49,7 +102,7 @@ export default function LoginPage() {
             {(["login", "signup"] as const).map(t => (
               <button
                 key={t}
-                onClick={() => setTab(t)}
+                onClick={() => { setTab(t); setError(""); }}
                 className={`relative pb-2 text-sm font-semibold tracking-tight transition-colors duration-180 capitalize
                   ${tab === t ? "text-primary border-b-2 border-primary" : "text-on-surface-variant hover:text-white border-b-2 border-transparent"}`}
               >
@@ -60,7 +113,10 @@ export default function LoginPage() {
 
           {/* Google OAuth */}
           <div className="mb-8">
-            <button className="w-full flex items-center justify-center gap-3 bg-surface-container-lowest hover:bg-surface-container transition-colors duration-180 py-3.5 px-4 rounded-lg border border-outline-variant/20 group active:scale-[0.98]" style={{ transition: "background 180ms cubic-bezier(0.23,1,0.32,1), transform 160ms cubic-bezier(0.23,1,0.32,1)" }}>
+            <button 
+              onClick={handleGoogleLogin}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-3 bg-surface-container-lowest hover:bg-surface-container disabled:opacity-50 transition-colors duration-180 py-3.5 px-4 rounded-lg border border-outline-variant/20 group active:scale-[0.98]" style={{ transition: "background 180ms cubic-bezier(0.23,1,0.32,1), transform 160ms cubic-bezier(0.23,1,0.32,1)" }}>
               <img
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuACq3rSgRyR7NQ5YE-oRP2nuo5LDHFSv1nSA-prPSCB5bGn1EsVNz_NZoi9cNsmAhfIuPVgmaSZB_wSvKoYrqOCvahDk9_2Sh9LHr47-Uj3k_hqkifndUpxu5tHDnde0mo8kqgo36vSL7chmV1WAX4l-8hEEla5BCxVxm2Z0t-ZH2NxSduPs7ERkXDCAv_oskn-LCPaJeaYNGaKV2Q46ueTzyULfYPyLvRojZYbRObnihpm_xLKxo06odSd3odeW73MX_TqcXDOhA"
                 alt="Google"
@@ -78,6 +134,12 @@ export default function LoginPage() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="bg-error-container/30 border border-error/50 p-3 rounded text-[11px] text-error flex items-center gap-2">
+                <span className="material-symbols-outlined text-sm">error</span>
+                {error}
+              </div>
+            )}
             <div className="space-y-2">
               <label className="font-mono text-[10px] uppercase tracking-widest text-on-surface-variant pl-1 block">Email Address</label>
               <input
@@ -109,11 +171,11 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-primary w-full py-4 rounded-lg"
+                className="btn-primary w-full py-4 rounded-lg flex items-center justify-center gap-2"
                 style={{ boxShadow: "0 8px 20px rgba(199,191,255,0.2)" }}
               >
                 {loading ? (
-                  <div className="spinner" />
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
                     <span>{tab === "login" ? "Initialize Session" : "Create Account"}</span>

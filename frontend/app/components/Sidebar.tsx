@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/app/context/AuthContext";
 
 const navItems = [
   { href: "/dashboard", icon: "dashboard", label: "Dashboard" },
@@ -13,6 +14,13 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/login");
+  };
 
   return (
     <aside className="fixed left-0 top-0 h-full w-16 flex flex-col items-center pt-20 pb-6 z-40 bg-[#0a0a0f]/80 border-r border-white/[0.04] backdrop-blur-xl">
@@ -47,6 +55,16 @@ export default function Sidebar() {
           );
         })}
       </nav>
+
+      {/* Logout button */}
+      <button 
+        onClick={handleLogout}
+        title="Logout"
+        className="mt-4 nav-link group relative flex flex-col items-center justify-center gap-1 py-3 rounded-lg cursor-pointer text-on-surface-variant hover:bg-error/10 hover:text-error transition-all duration-200 w-full px-2"
+      >
+        <span className="material-symbols-outlined text-xl">logout</span>
+        <span className="font-mono text-[8px] uppercase tracking-wider opacity-70 leading-none">Logout</span>
+      </button>
 
       {/* Online indicator */}
       <div className="mt-auto flex flex-col items-center gap-1.5">
