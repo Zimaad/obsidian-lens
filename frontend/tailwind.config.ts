@@ -10,50 +10,55 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        "outline": "#928ea0",
-        "surface-container-lowest": "#0e0e13",
-        "inverse-primary": "#5944da",
-        "surface-variant": "#35343a",
-        "surface-bright": "#39383e",
-        "surface": "#131318",
-        "secondary": "#4ddada",
-        "tertiary": "#c3d000",
-        "background": "#131318",
-        "tertiary-container": "#8e9800",
-        "surface-container-low": "#1b1b20",
-        "primary": "#c7bfff",
-        "on-background": "#e4e1e9",
-        "error": "#ffb4ab",
-        "on-primary": "#2a009f",
-        "on-surface": "#e4e1e9",
-        "on-secondary": "#003737",
-        "primary-fixed": "#e4dfff",
-        "surface-dim": "#131318",
-        "surface-container-high": "#2a292f",
-        "secondary-fixed": "#6ff7f6",
-        "secondary-fixed-dim": "#4ddada",
-        "outline-variant": "#474555",
-        "surface-container": "#1f1f25",
-        "primary-container": "#8d7fff",
-        "on-tertiary": "#2f3300",
-        "surface-tint": "#c7bfff",
-        "primary-fixed-dim": "#c7bfff",
-        "secondary-container": "#00b3b3",
-        "surface-container-highest": "#35343a",
-        "on-surface-variant": "#c8c4d7",
-        "on-secondary-fixed": "#002020",
+        // Refined Cream Palette (Slightly darker and smoother)
+        "cream": {
+          50: "#F7F5E6",  // Darkened from FDFCF0
+          100: "#F1EED7", // Adjusted
+          200: "#E9E5C5",
+          300: "#E1DBB2",
+          400: "#D9D19F",
+          DEFAULT: "#F7F5E6",
+        },
+        "charcoal": {
+          50: "#F6F6F6",
+          100: "#E7E7E7",
+          200: "#D1D1D1",
+          300: "#B0B0B0",
+          400: "#888888",
+          500: "#6D6D6D",
+          600: "#5D5D5D",
+          700: "#4F4F4F",
+          800: "#454545",
+          900: "#3D3D3D",
+          950: "#1A1A1A",
+          DEFAULT: "#1A1A1A",
+        },
+        "accent": {
+          soft: "#C5A028", // Slightly more muted gold
+          deep: "#4E342E", // Warmer brown
+          DEFAULT: "#C5A028",
+        },
+        // Semantic overrides
+        "primary": "#1A1A1A",
+        "on-primary": "#F7F5E6",
+        "secondary": "#C5A028",
+        "on-secondary": "#1A1A1A",
+        "background": "#F7F5E6",
+        "surface": "#FDFCF0", // Keep a super light as a highlight
+        "surface-variant": "#F1EED7",
+        "outline": "#E1DBB2",
+        "error": "#B91C1C",
       },
       fontFamily: {
-        headline: ["Inter", "sans-serif"],
-        body: ["Inter", "sans-serif"],
-        label: ["Inter", "sans-serif"],
-        mono: ["JetBrains Mono", "monospace"],
+        headline: ["var(--font-outfit)", "Inter", "sans-serif"],
+        body: ["var(--font-geist)", "Inter", "sans-serif"],
+        mono: ["var(--font-geist-mono)", "monospace"],
       },
       borderRadius: {
-        DEFAULT: "0.125rem",
-        lg: "0.25rem",
-        xl: "0.5rem",
-        "2xl": "0.75rem",
+        DEFAULT: "0.4rem", // Smoother edges
+        lg: "0.8rem",
+        xl: "1.2rem",
+        "2xl": "2rem",
         full: "9999px",
       },
       transitionTimingFunction: {
@@ -61,6 +66,10 @@ const config: Config = {
         "in-out-strong": "cubic-bezier(0.77, 0, 0.175, 1)",
         "drawer": "cubic-bezier(0.32, 0.72, 0, 1)",
       },
+      boxShadow: {
+        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+        'premium': '0 20px 40px -10px rgba(0, 0, 0, 0.1)',
+      }
     },
   },
   plugins: [],

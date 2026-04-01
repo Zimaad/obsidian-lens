@@ -17,7 +17,6 @@ const pipelineSteps = [
 
 type StepStatus = "pending" | "running" | "done";
 
-// Module-level guard to prevent parallel runs across mounts (common in Next.js Dev/Strict Mode)
 let globalAnalysisState = {
   activeTopic: "",
   isProcessing: false
@@ -36,17 +35,13 @@ function LabContent() {
   const abortRef = useRef<AbortController | null>(null);
 
   const { user } = useAuth();
-
-  // Primary guard against duplicate runs on component mount/remount
   const initiatedRef = useRef(false);
 
   useEffect(() => {
     if (initialTopic && !initiatedRef.current && phase === "idle") {
-      // Check if we already started this topic globally in the last few seconds
       if (globalAnalysisState.isProcessing && globalAnalysisState.activeTopic === initialTopic) {
         return;
       }
-      
       initiatedRef.current = true;
       setTopic(initialTopic);
       runAnalysis(initialTopic);
@@ -69,7 +64,6 @@ function LabContent() {
     abortRef.current = new AbortController();
 
     try {
-      // Animate pipeline steps sequentially
       for (const step of pipelineSteps) {
         if (abortRef.current?.signal.aborted) break;
         setStepStatuses(prev => ({ ...prev, [step.key]: "running" }));
@@ -78,7 +72,6 @@ function LabContent() {
         setStepTimes(prev => ({ ...prev, [step.key]: `${(step.durationMs / 1000).toFixed(1)}s` }));
       }
 
-      // Call backend
       const res = await fetch("http://localhost:8000/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -90,7 +83,6 @@ function LabContent() {
       const data = await res.json();
       setResult(data);
 
-      // Persist to Firestore if logged in
       if (user) {
         const docRef = await addDoc(collection(db, "analyses"), {
           userId: user.uid,
@@ -118,57 +110,57 @@ function LabContent() {
 
   return (
     <AppLayout>
-      <div className="p-8 max-w-7xl mx-auto page-enter">
-        <div className="mb-8">
-          <p className="font-mono text-xs uppercase tracking-widest text-primary mb-1">The Lab</p>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Analysis Lab</h1>
-          <p className="text-on-surface-variant text-sm mt-2">Initiate deep semantic cross-analysis. Synthesize hidden contradictions and research gaps from millions of peer-reviewed sources.</p>
+      <div className="p-10 max-w-7xl mx-auto page-enter">
+        <div className="mb-10 stagger-container">
+          <p className="font-headline text-[10px] uppercase font-bold tracking-[0.4em] text-accent-soft mb-2 stagger-item">The Lab</p>
+          <h1 className="text-4xl font-headline font-bold text-charcoal tracking-tight stagger-item">Analysis Lab</h1>
+          <p className="text-charcoal/60 text-sm mt-3 max-w-2xl font-body stagger-item">Initiate deep semantic cross-analysis. Synthesize hidden contradictions and research gaps from millions of peer-reviewed sources.</p>
         </div>
 
-        <div className="glass-card border border-white/[0.05] rounded-xl p-6 mb-8 stagger-item">
-          <div className="flex gap-3">
+        <div className="glass-card rounded-2xl p-8 mb-10 stagger-item shadow-soft">
+          <div className="flex gap-4">
             <div className="flex-1 relative">
-              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline" style={{ fontSize: "18px" }}>search</span>
+              <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-charcoal/30" style={{ fontSize: "20px" }}>search</span>
               <input
                 type="text"
                 value={topic}
                 onChange={e => setTopic(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && runAnalysis()}
                 placeholder="Enter research topic..."
-                className="w-full bg-surface-container-lowest text-on-surface border border-outline-variant/20 rounded-lg pl-11 pr-4 py-3.5 text-sm focus:outline-none focus:border-secondary/50 placeholder:text-outline-variant transition-colors duration-200"
+                className="w-full bg-cream-100/50 text-charcoal border border-charcoal/5 rounded-xl pl-12 pr-4 py-4 text-sm focus:outline-none focus:border-charcoal/20 focus:bg-white placeholder:text-charcoal/20 transition-all font-body"
               />
             </div>
             <button
               onClick={() => runAnalysis()}
               disabled={phase === "running" || !topic.trim()}
-              className="btn-primary disabled:opacity-50"
+              className="btn-primary disabled:opacity-50 px-8 rounded-xl"
             >
-              {phase === "running" ? <div className="spinner" /> : (
-                <><span className="material-symbols-outlined text-base">play_arrow</span> Run Analysis</>
+              {phase === "running" ? <div className="spinner !border-cream-50/30 !border-t-cream-50" /> : (
+                <><span className="material-symbols-outlined text-lg">play_arrow</span> Run Analysis</>
               )}
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          <div className="lg:col-span-2 glass-card border border-white/[0.05] rounded-xl p-6 stagger-item">
-            <p className="font-mono text-xs uppercase tracking-widest text-primary mb-5">Analysis Pipeline</p>
-            <div className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+          <div className="lg:col-span-2 glass-card rounded-2xl p-8 stagger-item shadow-soft">
+            <p className="font-headline text-[10px] uppercase font-bold tracking-widest text-charcoal/40 mb-6">Analysis Pipeline</p>
+            <div className="space-y-5">
               {pipelineSteps.map((step) => {
                 const status = stepStatuses[step.key] ?? "pending";
                 return (
-                  <div key={step.key} className="flex items-center gap-3">
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 
-                      ${status === "done" ? "bg-secondary/15 text-secondary" :
-                        status === "running" ? "bg-primary/15 text-primary" : "bg-surface-container text-outline"}`}>
+                  <div key={step.key} className="flex items-center gap-4">
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300
+                      ${status === "done" ? "bg-accent-soft/10 text-accent-soft" :
+                        status === "running" ? "bg-charcoal text-cream-50 shadow-md scale-110" : "bg-charcoal/5 text-charcoal/20"}`}>
                       {status === "running" ? (
-                        <div className="spinner" style={{ width: 14, height: 14, borderWidth: 1.5 }} />
+                        <div className="spinner !border-cream-50/20 !border-t-cream-50" style={{ width: 14, height: 14, borderWidth: 1.5 }} />
                       ) : (
-                        <span className="material-symbols-outlined" style={{ fontSize: "15px" }}>{status === "done" ? "check_circle" : step.icon}</span>
+                        <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>{status === "done" ? "check_circle" : step.icon}</span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm ${status === "pending" ? "text-outline" : "text-on-surface"}`}>{step.label}</p>
+                      <p className={`text-sm font-body transition-colors duration-300 ${status === "pending" ? "text-charcoal/30" : "text-charcoal font-medium"}`}>{step.label}</p>
                     </div>
                   </div>
                 );
@@ -176,34 +168,39 @@ function LabContent() {
             </div>
           </div>
 
-          <div className="lg:col-span-3 glass-card border border-white/[0.05] rounded-xl p-6 stagger-item">
-            <p className="font-mono text-xs uppercase tracking-widest text-primary mb-5">Lab Feed</p>
-            {(phase === "done" || result) && (
-              <div className="space-y-4">
-                {error && <div className="text-xs text-error">{error}</div>}
+          <div className="lg:col-span-3 glass-card rounded-2xl p-8 stagger-item shadow-soft min-h-[400px] flex flex-col">
+            <p className="font-headline text-[10px] uppercase font-bold tracking-widest text-charcoal/40 mb-6">Lab Feed</p>
+            {(phase === "done" || result) ? (
+              <div className="space-y-6 flex-1 flex flex-col">
+                {error && <div className="text-sm text-red-500 font-medium bg-red-50 p-4 rounded-xl border border-red-100">{error}</div>}
                 {result?.gaps && result.gaps.length > 0 ? (
                   <>
-                    <p className="text-xs text-on-surface-variant uppercase font-mono tracking-wider">{result.gaps.length} Gaps Detected</p>
-                    <div className="space-y-2">
+                    <p className="text-[10px] text-accent-soft uppercase font-headline tracking-[0.2em] font-bold">{result.gaps.length} Gaps Detected</p>
+                    <div className="space-y-3 flex-1">
                       {result.gaps.slice(0, 3).map((g: any, i: number) => (
-                        <div key={i} className="p-3 bg-white/[0.02] rounded border border-white/[0.04]">
-                          <p className="text-sm text-white font-semibold mb-1">{g.title || "Observation"}</p>
-                          <p className="text-xs text-on-surface-variant line-clamp-2">{g.description || g.gap}</p>
+                        <div key={i} className="p-5 bg-white/40 rounded-2xl border border-charcoal/5 hover:border-charcoal/10 transition-all group cursor-default">
+                          <p className="text-sm text-charcoal font-bold mb-1.5 font-headline group-hover:text-accent-soft transition-colors">{g.title || "Observation"}</p>
+                          <p className="text-xs text-charcoal/50 leading-relaxed line-clamp-2 font-body">{g.description || g.gap}</p>
                         </div>
                       ))}
                     </div>
-                    <div className="pt-4 flex gap-3">
-                      <Link href={resultId ? `/gap-explorer?id=${resultId}` : "/gap-explorer"} className="btn-primary text-xs px-4 py-2.5 rounded">
-                        <span className="material-symbols-outlined text-sm">explore</span> View Full Analysis
+                    <div className="pt-6 mt-auto">
+                      <Link href={resultId ? `/gap-explorer?id=${resultId}` : "/gap-explorer"} className="btn-primary w-full rounded-xl active:scale-95">
+                        <span className="material-symbols-outlined text-lg">explore</span> View Full Analysis
                       </Link>
                     </div>
                   </>
                 ) : phase === "done" && !error && (
-                  <div className="flex flex-col items-center justify-center h-40 opacity-40">
-                    <span className="material-symbols-outlined text-3xl mb-2">sentiment_neutral</span>
-                    <p className="text-xs">No significant gaps detected in this paper cluster.</p>
+                  <div className="flex flex-col items-center justify-center flex-1 opacity-20">
+                    <span className="material-symbols-outlined text-5xl mb-4">sentiment_neutral</span>
+                    <p className="text-sm font-headline uppercase tracking-widest font-bold">No significant gaps detected</p>
                   </div>
                 )}
+              </div>
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center opacity-10">
+                <span className="material-symbols-outlined text-6xl mb-4">analytics</span>
+                <p className="text-sm font-headline font-bold uppercase tracking-widest">Feed Standby</p>
               </div>
             )}
           </div>
@@ -215,8 +212,9 @@ function LabContent() {
 
 export default function LabPage() {
   return (
-    <Suspense fallback={<div className="p-10 text-white font-mono text-xs">Initializing Analysis Lab...</div>}>
+    <Suspense fallback={<div className="p-10 text-charcoal/40 font-headline font-bold text-xs uppercase tracking-widest">Initializing Lab...</div>}>
       <LabContent />
     </Suspense>
   );
 }
+

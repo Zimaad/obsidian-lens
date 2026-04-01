@@ -1,142 +1,142 @@
 "use client";
 import AppLayout from "../components/AppLayout";
 import Link from "next/link";
-import { useState } from "react";
-
-const papers = [
-  {
-    id: "LIB-001",
-    title: "Neural Substrate of Consciousness: Integrated Information Theory v4.0",
-    desc: "Cross-examination of integrated information metrics in thalamocortical loops during rapid-eye-movement sleep states.",
-    year: 2024, field: "Neuroscience", claims: 8, gaps: 2, contradictions: 1,
-  },
-  {
-    id: "LIB-002",
-    title: "Post-Quantum Cryptography in Decentralized Finance",
-    desc: "Evaluating the vulnerability of existing liquidity pools to Grover's algorithm and Shor's algorithm variants.",
-    year: 2024, field: "Cryptography", claims: 12, gaps: 3, contradictions: 0,
-  },
-  {
-    id: "LIB-003",
-    title: "Dark Matter Constraints from Dwarf Spheroidal Galaxies",
-    desc: "Review of gamma-ray emission upper limits and implications for WIMP annihilation cross-sections.",
-    year: 2023, field: "Astrophysics", claims: 6, gaps: 1, contradictions: 2,
-  },
-  {
-    id: "LIB-004",
-    title: "Microplastic Infiltration in Alpine Soil Ecosystems",
-    desc: "Metanalysis of environmental impact studies versus chemical industry toxicity reports for high-altitude ecosystems.",
-    year: 2024, field: "Environmental Science", claims: 9, gaps: 4, contradictions: 1,
-  },
-];
+import { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { db } from "../lib/firebase";
+import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 
 export default function LibraryPage() {
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
+  const [papers, setPapers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchPapers() {
+      if (!user) return;
+      try {
+        const q = query(
+          collection(db, "analyses"),
+          where("userId", "==", user.uid),
+          orderBy("createdAt", "desc")
+        );
+        const querySnapshot = await getDocs(q);
+        const fetched = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          dateLabel: doc.data().createdAt?.toDate().toLocaleDateString() || "Recent",
+          year: doc.data().createdAt?.toDate().getFullYear() || 2024
+        }));
+        setPapers(fetched);
+      } catch (error) {
+        console.error("Error fetching library:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchPapers();
+  }, [user]);
+
   const filtered = papers.filter(p =>
-    p.title.toLowerCase().includes(search.toLowerCase()) ||
-    p.field.toLowerCase().includes(search.toLowerCase())
+    (p.topic || "").toLowerCase().includes(search.toLowerCase()) ||
+    (p.field || "").toLowerCase().includes(search.toLowerCase())
   );
 
   return (
     <AppLayout>
-      <div className="p-8 max-w-7xl mx-auto page-enter">
-        <div className="flex items-start justify-between mb-8">
-          <div>
-            <p className="font-mono text-xs uppercase tracking-widest text-primary mb-1">Paper Library</p>
-            <h1 className="text-3xl font-bold text-white tracking-tight">Research Library</h1>
+      <div className="p-10 max-w-7xl mx-auto page-enter">
+        <div className="flex items-start justify-between mb-10 stagger-container">
+          <div className="stagger-item">
+            <p className="font-headline text-[10px] uppercase font-bold tracking-[0.4em] text-accent-soft mb-2">Paper Library</p>
+            <h1 className="text-4xl font-headline font-bold text-charcoal tracking-tight">Research Library</h1>
+            <p className="text-charcoal/60 text-sm mt-3 max-w-2xl font-body">Manage your repository of synthesized papers, methodology nodes, and derived insights.</p>
           </div>
-          <button className="btn-primary">
-            <span className="material-symbols-outlined text-base">upload_file</span>
-            Upload PDF / URL
-          </button>
+          <Link href="/dashboard" className="btn-primary rounded-xl px-8 py-4 stagger-item shadow-soft active:scale-95">
+            <span className="material-symbols-outlined text-xl">biotech</span>
+            <span className="font-bold">New Analysis</span>
+          </Link>
         </div>
 
         {/* Search & filters */}
-        <div className="flex gap-3 mb-8 stagger-item">
+        <div className="flex gap-4 mb-10 stagger-item">
           <div className="flex-1 relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline" style={{ fontSize: "18px" }}>search</span>
+            <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-charcoal/30" style={{ fontSize: "20px" }}>search</span>
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search papers, fields, keywords..."
-              className="w-full bg-surface-container-lowest text-on-surface border border-outline-variant/20 rounded-lg pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-secondary/50 placeholder:text-outline-variant transition-colors duration-200"
+              placeholder="Search papers, topics, keywords..."
+              className="w-full bg-cream-100/50 text-charcoal border border-charcoal/5 rounded-xl pl-12 pr-4 py-4 text-sm focus:outline-none focus:border-charcoal/20 focus:bg-white placeholder:text-charcoal/20 transition-all font-body shadow-inner"
             />
           </div>
-          <button className="btn-ghost px-4 py-2.5 text-xs">
-            <span className="material-symbols-outlined text-sm">tune</span> Filter
+          <button className="btn-ghost px-6 rounded-xl text-xs font-bold border border-charcoal/5 hover:bg-white transition-all">
+            <span className="material-symbols-outlined text-base">tune</span> Filter
           </button>
-          <button className="btn-ghost px-4 py-2.5 text-xs">
-            <span className="material-symbols-outlined text-sm">sort</span> Sort
-          </button>
-        </div>
-
-        {/* Upload drop zone */}
-        <div className="glass-card border border-dashed border-outline-variant/30 rounded-xl p-6 mb-8 text-center hover:border-primary/30 transition-colors duration-300 group cursor-pointer stagger-item" style={{ animationDelay: "80ms" }}>
-          <span className="material-symbols-outlined text-outline text-3xl mb-2 block group-hover:text-primary/60 transition-colors duration-200">cloud_upload</span>
-          <p className="text-sm font-semibold text-white mb-0.5">New Analysis</p>
-          <p className="text-xs text-on-surface-variant">Upload PDF or URL to start — drag & drop or click</p>
         </div>
 
         {/* Papers list */}
-        {filtered.length > 0 ? (
-          <div className="space-y-3">
+        {loading ? (
+          <div className="space-y-4 mb-12">
+            {[1, 2, 3, 4].map(i => <div key={i} className="skeleton h-32 rounded-2xl" />)}
+          </div>
+        ) : filtered.length > 0 ? (
+          <div className="space-y-4 mb-12 stagger-container">
             {filtered.map((paper, i) => (
-              <div
+              <Link
                 key={paper.id}
-                className="glass-card border border-white/[0.05] rounded-xl p-5 hover:bg-white/[0.04] transition-colors duration-200 cursor-pointer group stagger-item"
-                style={{ animationDelay: `${(i + 2) * 60}ms` }}
+                href={`/gap-explorer?id=${paper.id}`}
+                className="glass-card rounded-3xl p-8 flex items-center justify-between gap-8 hover:bg-white/60 hover:translate-x-1 hover:shadow-premium transition-all duration-300 cursor-pointer group stagger-item"
+                style={{ "--stagger-delay": `${(i + 2) * 60}ms` } as React.CSSProperties}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <span className="font-mono text-[9px] text-outline">{paper.id}</span>
-                      <span className="font-mono text-[9px] px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant border border-outline-variant/20 uppercase tracking-wider">{paper.field}</span>
-                      <span className="font-mono text-[9px] text-on-surface-variant">{paper.year}</span>
-                    </div>
-                    <h3 className="text-sm font-semibold text-white mb-1.5 group-hover:text-primary transition-colors duration-200">{paper.title}</h3>
-                    <p className="text-xs text-on-surface-variant leading-relaxed">{paper.desc}</p>
-                    <div className="flex items-center gap-4 mt-3">
-                      <span className="flex items-center gap-1 text-[10px] font-mono text-on-surface-variant">
-                        <span className="material-symbols-outlined text-secondary" style={{ fontSize: "13px" }}>auto_stories</span>
-                        {paper.claims} claims
-                      </span>
-                      <span className="flex items-center gap-1 text-[10px] font-mono text-on-surface-variant">
-                        <span className="material-symbols-outlined text-primary" style={{ fontSize: "13px" }}>explore</span>
-                        {paper.gaps} gaps
-                      </span>
-                      {paper.contradictions > 0 && (
-                        <span className="flex items-center gap-1 text-[10px] font-mono text-error">
-                          <span className="material-symbols-outlined" style={{ fontSize: "13px" }}>rule</span>
-                          {paper.contradictions} contradiction{paper.contradictions > 1 ? "s" : ""}
-                        </span>
-                      )}
-                    </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-4 mb-3">
+                    <span className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-charcoal/5 border border-charcoal/5">
+                      <span className="font-headline text-[10px] text-charcoal/60 uppercase font-bold tracking-widest">{paper.field || "General"}</span>
+                    </span>
+                    <span className="font-headline text-[10px] text-charcoal/30 font-bold uppercase tracking-widest">{paper.dateLabel}</span>
                   </div>
-                  <Link href="/gap-explorer" className="shrink-0 p-2 rounded-lg hover:bg-white/[0.06] transition-colors duration-180">
-                    <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors duration-200" style={{ fontSize: "18px" }}>arrow_outward</span>
-                  </Link>
+                  <h3 className="text-2xl font-headline font-bold text-charcoal mb-3 group-hover:text-accent-soft transition-colors leading-tight">{paper.topic}</h3>
+                  <p className="text-base text-charcoal/50 leading-relaxed font-body max-w-4xl line-clamp-2">{paper.abstract || paper.summary || "Synthesis complete. Access the full topological map to explore identified latent gaps."}</p>
+                  
+                  <div className="flex items-center gap-8 mt-8">
+                    <span className="flex items-center gap-2.5 text-[11px] font-headline font-bold uppercase tracking-[0.1em] text-charcoal/40">
+                      <span className="material-symbols-outlined text-[18px] text-accent-soft">insights</span>
+                      {paper.gaps?.length || 0} Gaps
+                    </span>
+                    <span className="flex items-center gap-2.5 text-[11px] font-headline font-bold uppercase tracking-[0.1em] text-charcoal/40">
+                      <span className="material-symbols-outlined text-[18px] text-charcoal/20">rule</span>
+                      {paper.contradictions?.length || 0} Contradictions
+                    </span>
+                  </div>
                 </div>
-              </div>
+                <div className="shrink-0 w-14 h-14 rounded-2xl bg-charcoal/5 group-hover:bg-charcoal group-hover:text-cream-50 flex items-center justify-center transition-all shadow-soft active:scale-95">
+                  <span className="material-symbols-outlined text-2xl">explore</span>
+                </div>
+              </Link>
             ))}
           </div>
         ) : (
-          <div className="text-center py-24 glass-card border border-white/[0.05] rounded-xl stagger-item">
-            <span className="material-symbols-outlined text-outline text-5xl mb-3 block">search_off</span>
-            <p className="text-sm font-semibold text-white mb-1">No Records Found</p>
-            <p className="text-xs text-on-surface-variant font-mono uppercase tracking-widest">Revise your parameters or initiate new scan</p>
+          <div className="text-center py-24 glass-card rounded-3xl stagger-item opacity-40 shadow-soft bg-cream-100/20">
+            <span className="material-symbols-outlined text-6xl mb-6 block text-charcoal/20">inbox</span>
+            <p className="text-sm font-headline font-bold uppercase tracking-widest text-charcoal/40">Neural Store Empty</p>
+            <p className="text-xs font-body text-charcoal/30 mt-2">Initialize a new research scan to populate your library.</p>
           </div>
         )}
 
         {/* Footer status */}
-        <div className="mt-8 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="flex h-1.5 w-1.5 rounded-full bg-secondary shadow-[0_0_6px_rgba(77,218,218,0.8)]" />
-            <span className="font-mono text-[10px] text-on-surface-variant uppercase tracking-wider">Privacy Protocol Active</span>
+        {!loading && (
+          <div className="mt-12 flex items-center justify-between border-t border-charcoal/5 pt-8 stagger-item">
+            <div className="flex items-center gap-3">
+              <div className="data-pulse !w-2 !h-2" />
+              <span className="font-headline text-[10px] text-charcoal/30 uppercase font-bold tracking-[0.2em]">Neural Pipeline Synced</span>
+            </div>
+            <span className="font-headline text-[10px] text-charcoal/30 uppercase font-bold tracking-[0.2em]">Repository Scope: {papers.length} Analyses</span>
           </div>
-          <span className="font-mono text-[10px] text-on-surface-variant uppercase tracking-wider">System Status: Nominal</span>
-        </div>
+        )}
       </div>
     </AppLayout>
   );
 }
+
+

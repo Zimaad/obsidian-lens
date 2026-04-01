@@ -69,6 +69,3 @@ The **Obsidian Neural Core** follows a 4-stage pipeline:
 4. **Synthesizer Agent**: Formalizes structural gaps and suggests technical approaches.
 
 ---
-
-## ⚖️ License
-MIT License - Developed for advanced research synthesis.

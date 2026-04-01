@@ -6,9 +6,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <>
       <TopNav />
       <Sidebar />
-      <main className="pl-16 pt-14 min-h-screen bg-[#0a0a0f]">
+      <main className="pl-16 pt-14 min-h-screen bg-background text-charcoal">
         {children}
       </main>
     </>
   );
 }
+
