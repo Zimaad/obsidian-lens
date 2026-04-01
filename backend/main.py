@@ -4,11 +4,19 @@ from pydantic import BaseModel
 from graph.pipeline import build_pipeline
 from utils.llm import get_llm
 
+import os
+
 app = FastAPI(title="Research Gap Finder")
+
+origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    os.getenv("FRONTEND_URL", "*")
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins if os.getenv("FRONTEND_URL") else ["*"],
     allow_methods=["*"],
     allow_headers=["*"]
 )

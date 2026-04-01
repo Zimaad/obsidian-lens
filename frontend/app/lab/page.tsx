@@ -72,7 +72,8 @@ function LabContent() {
         setStepTimes(prev => ({ ...prev, [step.key]: `${(step.durationMs / 1000).toFixed(1)}s` }));
       }
 
-      const res = await fetch("http://localhost:8000/analyze", {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(`${API_URL}/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ topic: currentTopic }),
