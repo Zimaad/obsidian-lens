@@ -4,6 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
+import AlgorithmicHero from "./components/AlgorithmicHero";
+
 export default function LandingPage() {
   const protocolRef = useRef<HTMLDivElement>(null);
   const [protocolVisible, setProtocolVisible] = useState(false);
@@ -32,11 +34,8 @@ export default function LandingPage() {
       <main className="relative pt-14 bg-cream-50 min-h-screen border-x border-charcoal">
         {/* ── Hero ── */}
         <section className="relative h-[calc(100vh-3.5rem)] flex flex-col items-center justify-center px-6 overflow-hidden border-b border-charcoal">
-          {/* Background Decor */}
-          <div className="absolute inset-0 z-0 pointer-events-none">
-            <div className="absolute top-[10%] left-[5%] w-[600px] h-[600px] bg-accent-soft/[0.03] rounded-full blur-[140px]" />
-            <div className="absolute bottom-[10%] right-[5%] w-[500px] h-[500px] bg-charcoal/[0.02] rounded-full blur-[120px]" />
-          </div>
+          {/* Background Algorithmic Art */}
+          <AlgorithmicHero />
 
           <div className="relative z-10 max-w-5xl text-center page-enter">
             <h1 className="text-7xl md:text-9xl font-headline font-bold tracking-tight text-charcoal mb-8 leading-[0.95]">
