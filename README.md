@@ -1,6 +1,6 @@
-# 🌌 Obsidian Lens: Neural Research Synthesis
+# 🌌 Hiatus: Neural Research Synthesis
 
-**Obsidian Lens** is a high-fidelity research intelligence engine designed to identify structural gaps and latent contradictions within academic literature. By leveraging **LangGraph** for orchestrated multi-agent reasoning and **Groq (Llama 3.3)** for lightning-fast inference, it transforms thousands of papers into actionable research frontiers.
+**Hiatus** is a high-fidelity research intelligence engine designed to identify structural gaps and latent contradictions within academic literature. By leveraging **LangGraph** for orchestrated multi-agent reasoning and **Groq (Llama 3.3)** for lightning-fast inference, it transforms thousands of papers into actionable research frontiers.
 
 ---
 

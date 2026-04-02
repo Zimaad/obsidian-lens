@@ -2,8 +2,8 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { 
-  signInWithEmailAndPassword, 
+import {
+  signInWithEmailAndPassword,
   createUserWithEmailAndPassword
 } from "firebase/auth";
 import { auth, db } from "@/app/lib/firebase";
@@ -81,7 +81,7 @@ export default function LoginPage() {
             <span className="material-symbols-outlined text-cream-50 text-3xl">lens</span>
           </div>
           <div className="space-y-1">
-            <h1 className="font-headline font-bold text-4xl tracking-tighter text-charcoal">Obsidian Lens</h1>
+            <h1 className="font-headline font-bold text-4xl tracking-tighter text-charcoal">Hiatus</h1>
             <p className="font-headline text-[10px] uppercase tracking-[0.4em] text-accent-soft font-bold">Research Gateway</p>
           </div>
         </Link>
@@ -106,7 +106,7 @@ export default function LoginPage() {
 
           {/* Google OAuth */}
           <div className="mb-8 stagger-container">
-            <button 
+            <button
               onClick={handleGoogleLogin}
               disabled={loading}
               className="w-full flex items-center justify-center gap-3 bg-white hover:bg-cream-100 disabled:opacity-50 transition-all duration-200 py-4 px-4 rounded-xl border border-charcoal/10 group active:scale-[0.97] shadow-sm stagger-item"

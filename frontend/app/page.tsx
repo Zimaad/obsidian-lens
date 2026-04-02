@@ -73,15 +73,15 @@ export default function LandingPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
               {[
-                { n: "01", icon: "search",      title: "Deep Search",   desc: "Agents crawl academic databases, pre-prints, and patents to gather every relevant data point." },
+                { n: "01", icon: "search", title: "Deep Search", desc: "Agents crawl academic databases, pre-prints, and patents to gather every relevant data point." },
                 { n: "02", icon: "auto_stories", title: "Semantic Read", desc: "LLMs digest methodology, findings, and limitations to understand the core thesis of each paper." },
-                { n: "03", icon: "psychology",   title: "Analyze",       desc: "Cross-reference findings to detect statistical anomalies or logic gaps across the literature set." },
-                { n: "04", icon: "insights",     title: "Synthesize",    desc: "Generate a comprehensive map of unexplored territories and high-value research questions." },
+                { n: "03", icon: "psychology", title: "Analyze", desc: "Cross-reference findings to detect statistical anomalies or logic gaps across the literature set." },
+                { n: "04", icon: "insights", title: "Synthesize", desc: "Generate a comprehensive map of unexplored territories and high-value research questions." },
               ].map((step, i) => (
-                <div 
-                  key={step.n} 
+                <div
+                  key={step.n}
                   className={`flex flex-col gap-6 group transition-all duration-700 ease-out`}
-                  style={{ 
+                  style={{
                     transitionDelay: `${i * 200}ms`,
                     opacity: protocolVisible ? 1 : 0,
                     transform: protocolVisible ? 'translateY(0)' : 'translateY(30px)'
@@ -109,7 +109,7 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto">
             <div className="mb-24 text-center">
               <h2 className="text-5xl font-headline font-bold tracking-tight text-charcoal mb-6">Frontiers of Knowledge</h2>
-              <p className="text-charcoal/50 max-w-xl mx-auto font-body text-lg">Obsidian Lens doesn't just summarize; it identifies the structural holes in current scientific consensus.</p>
+              <p className="text-charcoal/50 max-w-xl mx-auto font-body text-lg">Hiatus doesn't just summarize; it identifies the structural holes in current scientific consensus.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8 stagger-container">
@@ -191,7 +191,7 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-16">
               <div className="space-y-4">
-                <span className="text-2xl font-bold tracking-tighter text-charcoal font-headline">Obsidian Lens</span>
+                <span className="text-2xl font-bold tracking-tighter text-charcoal font-headline">Hiatus</span>
                 <p className="text-sm text-charcoal/40 font-body max-w-xs">Precision research systems for detecting scientific frontiers and knowledge gaps.</p>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-12">
@@ -213,7 +213,7 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-charcoal/5 gap-4">
-              <p className="text-xs text-charcoal/30 font-headline font-bold tracking-widest uppercase">© 2024 Obsidian Lens Systems</p>
+              <p className="text-xs text-charcoal/30 font-headline font-bold tracking-widest uppercase">© 2024 Hiatus Systems</p>
             </div>
           </div>
         </footer>

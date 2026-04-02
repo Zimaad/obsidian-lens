@@ -19,7 +19,7 @@ const fontGeistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Obsidian Lens | Research Gap Finder",
+  title: "Hiatus | Research Gap Finder",
   description: "Harness an autonomous agentic workflow that reads thousands of papers, detects latent contradictions, and visualizes the frontiers of human knowledge.",
 };
 

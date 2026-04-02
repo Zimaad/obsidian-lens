@@ -18,7 +18,7 @@ export default function TopNav() {
       <div className="flex items-center gap-8">
         {isPublic && (
           <>
-            <Link href="/" className="text-xl font-bold tracking-tighter text-charcoal font-headline">Obsidian Lens</Link>
+            <Link href="/" className="text-xl font-bold tracking-tighter text-charcoal font-headline">Hiatus</Link>
             <div className="hidden md:flex gap-6 text-sm font-medium">
               <Link href="/" className="text-charcoal transition-colors duration-200">Home</Link>
               <Link href="/lab" className="text-charcoal/60 hover:text-charcoal transition-colors duration-200">Lab</Link>
@@ -27,7 +27,7 @@ export default function TopNav() {
           </>
         )}
         {!isPublic && (
-          <span className="text-[11px] font-headline text-charcoal uppercase tracking-[0.3em] font-bold">Obsidian Lens</span>
+          <span className="text-[11px] font-headline text-charcoal uppercase tracking-[0.3em] font-bold">Hiatus</span>
         )}
       </div>
 
