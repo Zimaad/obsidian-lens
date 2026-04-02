@@ -58,11 +58,8 @@ function GapExplorerContent() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || !id || !user || sending) return;
-    const userMessage = input.trim();
-    setInput("");
+  const sendMessage = async (userMessage: string) => {
+    if (!userMessage.trim() || !id || !user || sending) return;
     setSending(true);
 
     try {
@@ -116,6 +113,14 @@ function GapExplorerContent() {
     }
   };
 
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    const msg = input;
+    setInput("");
+    await sendMessage(msg);
+  };
+
   if (loading) return (
     <div className="p-10 flex items-center justify-center min-h-[50vh]">
        <div className="flex flex-col items-center gap-6">
@@ -154,12 +159,11 @@ function GapExplorerContent() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6 shrink-0 stagger-container border-b border-charcoal/5 pb-6">
           <div className="stagger-item">
-            <p className="font-headline text-[9px] uppercase font-bold tracking-[0.3em] text-accent-soft mb-1">Synthesized Frontiers</p>
             <h1 className="text-4xl font-headline font-bold text-charcoal tracking-tight">{analysis.topic}</h1>
             <div className="flex items-center gap-3 mt-2">
-              <span className="px-2 py-0.5 rounded-lg bg-charcoal/5 border border-charcoal/5 text-[9px] font-headline font-bold text-charcoal/40 uppercase tracking-widest">{analysis.field || "General Domain"}</span>
-              <span className="w-1 h-1 rounded-full bg-charcoal/10" />
-              <span className="text-[9px] font-headline font-bold text-charcoal/30 uppercase tracking-widest">Analysis ID: {id.slice(0,8)}...</span>
+              {analysis.field && (
+                <span className="px-2 py-0.5 rounded-lg bg-charcoal/5 border border-charcoal/5 text-[9px] font-headline font-bold text-charcoal/40 uppercase tracking-widest">{analysis.field}</span>
+              )}
             </div>
           </div>
         </div>
@@ -177,19 +181,23 @@ function GapExplorerContent() {
                 >
                   <div className="flex items-center gap-4 mb-4">
                     <span className="font-headline text-[10px] font-bold text-accent-soft tracking-[0.2em] uppercase bg-accent-soft/5 px-2 py-0.5 rounded-lg">GAP {String(i+1).padStart(2, "0")}</span>
-                    <div className="w-1.5 h-1.5 rounded-full bg-charcoal/10" />
-                    <span className="px-2 py-0.5 rounded-lg bg-charcoal/5 text-charcoal/40 font-headline text-[9px] uppercase font-bold tracking-widest">Validated Protocol</span>
                   </div>
                   <h3 className="text-2xl font-headline font-bold text-charcoal mb-3 leading-tight">{gap.gap || gap.title}</h3>
                   <p className="text-sm text-charcoal/60 leading-relaxed font-body mb-6">{gap.description || gap.desc || "Structural divergence detected in methodology trails. Awaiting expanded synthesis."}</p>
                   
                   <div className="flex gap-6 border-t border-charcoal/5 pt-4">
-                    <button className="text-[10px] font-headline font-bold uppercase tracking-widest text-charcoal/40 hover:text-charcoal transition-colors flex items-center gap-2 group/btn">
+                    <button 
+                      onClick={() => sendMessage(`Expand on the evidence for Gap: "${gap.gap || gap.title}". Which specific papers support this hole in research?`)}
+                      className="text-[10px] font-headline font-bold uppercase tracking-widest text-charcoal/40 hover:text-charcoal transition-colors flex items-center gap-2 group/btn"
+                    >
                        <span className="material-symbols-outlined text-[16px] text-accent-soft group-hover/btn:scale-110 transition-transform">database</span> Expand Evidence
                     </button>
-                    <button className="text-[10px] font-headline font-bold uppercase tracking-widest text-charcoal/40 hover:text-charcoal transition-colors flex items-center gap-2 group/btn">
+                    <Link 
+                      href={`/graph?id=${id}`}
+                      className="text-[10px] font-headline font-bold uppercase tracking-widest text-charcoal/40 hover:text-charcoal transition-colors flex items-center gap-2 group/btn"
+                    >
                        <span className="material-symbols-outlined text-[16px] text-charcoal/20 group-hover/btn:scale-110 transition-transform">hub</span> Trace Origins
-                    </button>
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -238,7 +246,6 @@ function GapExplorerContent() {
                   <h3 className="text-[11px] font-headline font-bold text-charcoal uppercase tracking-[0.3em]">Neural Analyst</h3>
                   <p className="text-[9px] text-accent-soft font-headline font-bold uppercase tracking-widest flex items-center gap-2 mt-1">
                      <span className="w-1 h-1 rounded-full bg-accent-soft animate-ping" />
-                     Quantum Link Secure
                   </p>
                 </div>
               </div>
@@ -290,7 +297,6 @@ function GapExplorerContent() {
                   {sending ? <div className="spinner !w-5 !h-5 !border-cream-50/20 !border-t-cream-50" /> : <span className="material-symbols-outlined text-xl">send</span>}
                 </button>
               </form>
-              <p className="text-[8px] text-charcoal/30 text-center mt-6 font-headline font-bold uppercase tracking-widest">Multi-modal context injection active</p>
             </div>
           </div>
         </div>

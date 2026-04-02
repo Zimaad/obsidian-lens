@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 
@@ -9,25 +10,28 @@ export default function TopNav() {
   const isPublic = pathname === "/" || pathname === "/login";
 
   return (
-    <nav className={`fixed top-0 w-full z-50 flex items-center justify-between px-6 h-14
+    <nav className="fixed top-0 w-full z-50 flex items-center justify-between px-6 h-14
       bg-cream-50/80 backdrop-blur-xl
       shadow-sm
       border-b border-charcoal
-      ${!isPublic ? "pl-20" : ""}
-    `}>
+    ">
       <div className="flex items-center gap-8">
+        <Link href="/" className="flex items-center group">
+          <Image 
+            src="/hiatus_logo_cream.svg" 
+            alt="Hiatus" 
+            width={140} 
+            height={56} 
+            className="h-10 w-auto object-contain brightness-95 group-hover:brightness-110 transition-all duration-300"
+            priority
+          />
+        </Link>
         {isPublic && (
-          <>
-            <Link href="/" className="text-xl font-bold tracking-tighter text-charcoal font-headline">Hiatus</Link>
-            <div className="hidden md:flex gap-6 text-sm font-medium">
-              <Link href="/" className="text-charcoal transition-colors duration-200">Home</Link>
-              <Link href="/lab" className="text-charcoal/60 hover:text-charcoal transition-colors duration-200">Lab</Link>
-              <Link href="/gap-explorer" className="text-charcoal/60 hover:text-charcoal transition-colors duration-200">Gap Explorer</Link>
-            </div>
-          </>
-        )}
-        {!isPublic && (
-          <span className="text-[11px] font-headline text-charcoal uppercase tracking-[0.3em] font-bold">Hiatus</span>
+          <div className="hidden md:flex gap-6 text-sm font-medium">
+            <Link href="/" className="text-charcoal transition-colors duration-200 decoration-none">Home</Link>
+            <Link href="/lab" className="text-charcoal/60 hover:text-charcoal transition-colors duration-200">Lab</Link>
+            <Link href="/gap-explorer" className="text-charcoal/60 hover:text-charcoal transition-colors duration-200">Gap Explorer</Link>
+          </div>
         )}
       </div>
 

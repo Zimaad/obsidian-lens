@@ -26,7 +26,7 @@ export default function LibraryPage() {
           id: doc.id,
           ...doc.data(),
           dateLabel: doc.data().createdAt?.toDate().toLocaleDateString() || "Recent",
-          year: doc.data().createdAt?.toDate().getFullYear() || 2024
+          year: doc.data().createdAt?.toDate().getFullYear() || 2026
         }));
         setPapers(fetched);
       } catch (error) {

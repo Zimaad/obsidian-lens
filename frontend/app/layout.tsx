@@ -21,6 +21,9 @@ const fontGeistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Hiatus | Research Gap Finder",
   description: "Harness an autonomous agentic workflow that reads thousands of papers, detects latent contradictions, and visualizes the frontiers of human knowledge.",
+  icons: {
+    icon: "/icon.png",
+  }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

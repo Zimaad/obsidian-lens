@@ -1,6 +1,7 @@
 "use client";
 import TopNav from "./components/TopNav";
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 export default function LandingPage() {
@@ -191,7 +192,15 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-16">
               <div className="space-y-4">
-                <span className="text-2xl font-bold tracking-tighter text-charcoal font-headline">Hiatus</span>
+                <Link href="/" className="inline-block transition-transform hover:scale-105">
+                  <Image 
+                    src="/hiatus_logo_cream.svg" 
+                    alt="Hiatus" 
+                    width={100} 
+                    height={40} 
+                    className="h-10 w-auto object-contain"
+                  />
+                </Link>
                 <p className="text-sm text-charcoal/40 font-body max-w-xs">Precision research systems for detecting scientific frontiers and knowledge gaps.</p>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-12">
@@ -213,7 +222,7 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-charcoal/5 gap-4">
-              <p className="text-xs text-charcoal/30 font-headline font-bold tracking-widest uppercase">© 2024 Hiatus Systems</p>
+              <p className="text-xs text-charcoal/30 font-headline font-bold tracking-widest uppercase">© 2026 Hiatus Systems</p>
             </div>
           </div>
         </footer>
