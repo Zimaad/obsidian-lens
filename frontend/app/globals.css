@@ -1,14 +1,15 @@
 @import "tailwindcss";
 
 @theme {
-  --color-cream-50: #F7F5E6;
-  --color-cream-100: #F1EED7;
-  --color-charcoal: #1A1A1A;
-  --color-accent-soft: #C5A028;
-  --color-accent-deep: #4E342E;
+  --color-cream-50: #FAF8F2;  /* Lightened Camel Coat hint */
+  --color-cream-100: #F5EFE1; /* Muted Camel variant */
+  --color-charcoal: #6D3A3C;  /* Rubine (was Italian Roast) */
+  --color-accent-soft: #280B0F; /* Italian Roast (was Rubine) */
+  --color-accent-deep: #361319; /* Tamarind */
+  --color-accent-gold: #7B694E; /* Boho */
   
-  --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-  --shadow-premium: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+  --shadow-soft: 0 4px 20px -2px rgba(109, 58, 60, 0.05);
+  --shadow-premium: 0 20px 40px -10px rgba(109, 58, 60, 0.1);
 }
 
 /* ─── Design tokens ─── */
@@ -16,10 +17,10 @@
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
-  --cream-50: #F7F5E6;  /* Darkened slightly from FDFCF0 */
-  --cream-100: #F1EED7; /* Adjusted */
-  --charcoal: #1A1A1A;
-  --accent-gold: #C5A028; /* Slightly more muted gold */
+  --cream-50: #FAF8F2;  
+  --cream-100: #F5EFE1; 
+  --charcoal: #6D3A3C;
+  --accent-gold: #280B0F; /* Italian Roast as secondary accent */
 }
 
 /* ─── Base ─── */

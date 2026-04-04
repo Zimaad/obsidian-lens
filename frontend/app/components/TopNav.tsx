@@ -7,7 +7,7 @@ import { useAuth } from "../context/AuthContext";
 export default function TopNav() {
   const pathname = usePathname();
   const { user } = useAuth();
-  const isPublic = pathname === "/" || pathname === "/login";
+  const isPublic = pathname === "/" || pathname === "/login" || pathname === "/pricing" || pathname?.startsWith("/blog");
 
   return (
     <nav className="fixed top-0 w-full z-50 flex items-center justify-between px-6 h-14
@@ -30,6 +30,7 @@ export default function TopNav() {
           <div className="hidden md:flex gap-6 text-sm font-medium">
             <Link href="/" className="text-charcoal transition-colors duration-200 decoration-none">Home</Link>
             <Link href="/pricing" className="text-charcoal/60 hover:text-charcoal transition-colors duration-200">Pricing</Link>
+            <Link href="/blog" className="text-charcoal/60 hover:text-charcoal transition-colors duration-200">Blog</Link>
             <Link href="/lab" className="text-charcoal/60 hover:text-charcoal transition-colors duration-200">Lab</Link>
             <Link href="/gap-explorer" className="text-charcoal/60 hover:text-charcoal transition-colors duration-200">Gap Explorer</Link>
           </div>

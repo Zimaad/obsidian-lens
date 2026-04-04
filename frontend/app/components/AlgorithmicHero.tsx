@@ -35,9 +35,9 @@ const AlgorithmicHero: React.FC = () => {
         const SEED = Math.random() * 1000;
         
         // Colors from theme
-        const CREAM = '#F7F5E6';
-        const CHARCOAL = '#1A1A1A';
-        const ACCENT = '#C5A028'; 
+        const CREAM = '#FAF8F2';
+        const CHARCOAL = '#6D3A3C'; // Rubine as Charcoal
+        const ACCENT = '#280B0F';  // Italian Roast as Accent
         
         interface Particle {
             x: number;
@@ -130,7 +130,7 @@ const AlgorithmicHero: React.FC = () => {
                 ctx.beginPath();
                 ctx.lineWidth = p.color === ACCENT ? 1.5 : 1.0;
                 // Higher opacity strokes for visibility
-                ctx.strokeStyle = p.color === ACCENT ? `rgba(197, 160, 40, 0.7)` : `rgba(26, 26, 26, 0.35)`;
+                ctx.strokeStyle = p.color === ACCENT ? `rgba(40, 11, 15, 0.7)` : `rgba(109, 58, 60, 0.35)`;
                 
                 const prevX = p.x - p.vx * p.speed;
                 const prevY = p.y - p.vy * p.speed;
