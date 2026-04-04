@@ -29,6 +29,7 @@ export default function TopNav() {
         {isPublic && (
           <div className="hidden md:flex gap-6 text-sm font-medium">
             <Link href="/" className="text-charcoal transition-colors duration-200 decoration-none">Home</Link>
+            <Link href="/pricing" className="text-charcoal/60 hover:text-charcoal transition-colors duration-200">Pricing</Link>
             <Link href="/lab" className="text-charcoal/60 hover:text-charcoal transition-colors duration-200">Lab</Link>
             <Link href="/gap-explorer" className="text-charcoal/60 hover:text-charcoal transition-colors duration-200">Gap Explorer</Link>
           </div>

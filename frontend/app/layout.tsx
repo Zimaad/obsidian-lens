@@ -19,8 +19,33 @@ const fontGeistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Hiatus | Research Gap Finder",
-  description: "Harness an autonomous agentic workflow that reads thousands of papers, detects latent contradictions, and visualizes the frontiers of human knowledge.",
+  metadataBase: new URL("https://hiatus-three.vercel.app"), 
+  title: {
+    default: "Hiatus | Find the gaps. Skip the noise.",
+    template: "%s | Hiatus"
+  },
+  description: "Identify unexplored research gaps with Hiatus. Our agentic AI autonomously maps research fields, detects contradictions, and surfaces latent trends across thousands of papers.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Hiatus | AI Research Gap Finder",
+    description: "Map the unknown. Detect research contradictions and surface unexplored gaps with autonomous AI agents.",
+    url: "https://hiatus-three.vercel.app",
+    siteName: "Hiatus",
+    images: ["/opengraph-image"],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Hiatus | AI Research Gap Finder",
+    description: "Find the gaps. Skip the noise. Map research fields autonomously with Hiatus.",
+    images: ["/opengraph-image"],
+  },
+  verification: {
+    google: "yr2ccKxMOJIxIWUXMF7_7wOnmghet4IuDybjdBOqZI8",
+  },
   icons: {
     icon: "/icon.png",
   }
