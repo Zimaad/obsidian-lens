@@ -32,6 +32,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
+      
+      // Handle cookie for middleware
+      if (user) {
+        document.cookie = `session=active; path=/; samesite=lax`;
+      } else {
+        document.cookie = `session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+      }
     });
 
     return () => unsubscribe();

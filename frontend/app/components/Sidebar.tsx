@@ -4,12 +4,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
 
 const navItems = [
-  { href: "/dashboard", icon: "dashboard", label: "Dash" },
-  { href: "/lab", icon: "biotech", label: "Lab" },
-  { href: "/gap-explorer", icon: "explore", label: "Gap" },
-  { href: "/library", icon: "book_4", label: "Lib" },
-  { href: "/graph", icon: "hub", label: "Graph" },
-  { href: "/settings", icon: "settings", label: "Setup" },
+  { href: "/dashboard", icon: "dashboard", label: "Frontier" },
+  { href: "/gap-explorer", icon: "explore", label: "Explorer" },
+  { href: "/library", icon: "book_4", label: "Archive" },
+  { href: "/graph", icon: "hub", label: "Network" },
+  { href: "/settings", icon: "settings", label: "Settings" },
 ];
 
 export default function Sidebar() {

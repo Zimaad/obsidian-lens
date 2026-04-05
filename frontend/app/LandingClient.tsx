@@ -48,10 +48,7 @@ export default function LandingClient() {
 
             <div className="flex flex-col sm:flex-row gap-5 justify-center stagger-container">
               <Link href="/login" className="btn-primary stagger-item !px-12 !py-5 text-lg shadow-premium">
-                Start Researching
-              </Link>
-              <Link href="/lab" className="btn-ghost stagger-item !px-12 !py-5 text-lg font-bold border-charcoal/10">
-                View Demo
+                Enter Research Gateway
               </Link>
             </div>
           </div>
@@ -207,7 +204,6 @@ export default function LandingClient() {
                   <ul className="space-y-2 text-sm text-charcoal/60 font-medium">
                     <li><Link href="/pricing" className="hover:text-charcoal transition-colors">Pricing</Link></li>
                     <li><Link href="/blog" className="hover:text-charcoal transition-colors">Blog</Link></li>
-                    <li><Link href="/lab" className="hover:text-charcoal transition-colors">Lab</Link></li>
                   </ul>
                 </div>
                 <div className="space-y-4">

@@ -31,8 +31,9 @@ export default function TopNav() {
             <Link href="/" className="text-charcoal transition-colors duration-200 decoration-none">Home</Link>
             <Link href="/pricing" className="text-charcoal/60 hover:text-charcoal transition-colors duration-200">Pricing</Link>
             <Link href="/blog" className="text-charcoal/60 hover:text-charcoal transition-colors duration-200">Blog</Link>
-            <Link href="/lab" className="text-charcoal/60 hover:text-charcoal transition-colors duration-200">Lab</Link>
-            <Link href="/gap-explorer" className="text-charcoal/60 hover:text-charcoal transition-colors duration-200">Gap Explorer</Link>
+            {user && (
+              <Link href="/dashboard" className="text-charcoal/60 hover:text-charcoal transition-colors duration-200">Dashboard</Link>
+            )}
           </div>
         )}
       </div>

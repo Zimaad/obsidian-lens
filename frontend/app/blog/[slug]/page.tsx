@@ -73,8 +73,9 @@ const blogPostsContent: Record<string, any> = {
   }
 };
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const post = blogPostsContent[params.slug];
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const post = blogPostsContent[slug];
   if (!post) return { title: "Post Not Found" };
   
   return {
@@ -83,8 +84,9 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default function BlogPostPage({ params }: { params: { slug: string } }) {
-  const post = blogPostsContent[params.slug];
+export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const post = blogPostsContent[slug];
 
   if (!post) {
     return (
@@ -131,12 +133,12 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
         <h3 className="text-3xl font-headline font-bold text-charcoal mb-12">Continue Exploring</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {Object.entries(blogPostsContent)
-            .filter(([slug]) => slug !== params.slug)
+            .filter(([slugKey]) => slugKey !== slug)
             .slice(0, 2)
-            .map(([slug, data]) => (
+            .map(([slugKey, data]) => (
               <Link 
-                key={slug} 
-                href={`/blog/${slug}`}
+                key={slugKey} 
+                href={`/blog/${slugKey}`}
                 className="group p-8 rounded-[2rem] border border-charcoal/5 bg-white/40 hover:bg-white/80 transition-all duration-300"
               >
                 <span className="text-[10px] font-bold text-accent-soft uppercase tracking-widest mb-4 inline-block">Next Story</span>
