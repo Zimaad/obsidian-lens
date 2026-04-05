@@ -21,7 +21,7 @@ const fontGeistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://hiatus-three.vercel.app"), 
   title: {
-    default: "Hiatus | Find the gaps. Skip the noise.",
+    default: "Hiatus | AI Research Gap Finder",
     template: "%s | Hiatus"
   },
   description: "Identify unexplored research gaps with Hiatus. Our agentic AI autonomously maps research fields, detects contradictions, and surfaces latent trends across thousands of papers.",
