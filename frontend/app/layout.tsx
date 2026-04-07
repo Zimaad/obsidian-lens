@@ -50,12 +50,36 @@ export const metadata: Metadata = {
     icon: "/icon.png",
   }
 };
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Hiatus",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "Web",
+    "description": "An agentic AI research workflow that reads thousands of papers, detects latent contradictions, and surfaces research gaps.",
+    "url": "https://hiatus-three.vercel.app",
+    "author": {
+      "@type": "Organization",
+      "name": "Hiatus Systems"
+    },
+    "screenshot": "https://hiatus-three.vercel.app/opengraph-image",
+    "featureList": [
+      "Autonomous Research Gap Detection",
+      "Literature Contradiction Mapping",
+      "Scientific Synthesis Engine",
+      "Agentic Research Workflows"
+    ]
+  };
+
   return (
     <html lang="en" className={`${fontOutfit.variable} ${fontGeist.variable} ${fontGeistMono.variable}`}>
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </head>
       <body className="antialiased bg-background text-primary font-body">
         <AuthProvider>

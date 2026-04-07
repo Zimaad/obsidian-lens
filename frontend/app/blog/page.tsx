@@ -4,8 +4,8 @@ import TopNav from "../components/TopNav";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "Blog",
-    description: "Insights on research innovation, AI synthesis, and the future of scholarly discovery.",
+    title: "Research Insights & AI Synthesis Blog",
+    description: "Explore the frontiers of academic discovery. Deep dives into agentic AI research, literature mapping strategies, and automated gap detection.",
   };
 }
 

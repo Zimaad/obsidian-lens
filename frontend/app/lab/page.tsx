@@ -64,25 +64,48 @@ function LabContent() {
     abortRef.current = new AbortController();
 
     try {
-      for (const step of pipelineSteps) {
-        if (abortRef.current?.signal.aborted) break;
-        setStepStatuses(prev => ({ ...prev, [step.key]: "running" }));
-        await new Promise(r => setTimeout(r, step.durationMs));
-        setStepStatuses(prev => ({ ...prev, [step.key]: "done" }));
-        setStepTimes(prev => ({ ...prev, [step.key]: `${(step.durationMs / 1000).toFixed(1)}s` }));
-      }
-
+      // Start API call immediately
       const rawUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const API_URL = rawUrl.endsWith("/") ? rawUrl.slice(0, -1) : rawUrl;
-      const res = await fetch(`${API_URL}/analyze`, {
+      
+      const fetchPromise = fetch(`${API_URL}/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ topic: currentTopic }),
         signal: abortRef.current?.signal,
+      }).then(async res => {
+        if (!res.ok) throw new Error(`Server error: ${res.status}`);
+        return await res.json();
       });
-      
-      if (!res.ok) throw new Error(`Server error: ${res.status}`);
-      const data = await res.json();
+
+      // Run through animation steps
+      for (let i = 0; i < pipelineSteps.length; i++) {
+        const step = pipelineSteps[i];
+        if (abortRef.current?.signal.aborted) break;
+        
+        setStepStatuses(prev => ({ ...prev, [step.key]: "running" }));
+        const stepStart = Date.now();
+        
+        const isLastStep = i === pipelineSteps.length - 1;
+        
+        if (isLastStep) {
+          // Last step: wait for its minimum duration AND until the fetch is complete
+          await Promise.all([
+            new Promise(r => setTimeout(r, step.durationMs)),
+            fetchPromise.catch(() => {}) // Let animation finish if fetch fails; error handled below
+          ]);
+        } else {
+          // Regular step: just wait for its duration
+          await new Promise(r => setTimeout(r, step.durationMs));
+        }
+
+        setStepStatuses(prev => ({ ...prev, [step.key]: "done" }));
+        const stepElapsed = ((Date.now() - stepStart) / 1000).toFixed(1);
+        setStepTimes(prev => ({ ...prev, [step.key]: `${stepElapsed}s` }));
+      }
+
+      // Final data retrieval (should be instant if fetchPromise resolved already)
+      const data = await fetchPromise;
       setResult(data);
 
       if (user) {

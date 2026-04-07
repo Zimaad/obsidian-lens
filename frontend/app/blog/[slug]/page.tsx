@@ -125,6 +125,24 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         <div className="prose prose-lg prose-charcoal mx-auto">
           {post.content}
         </div>
+
+        {/* Lab CTA Card */}
+        <div className="mt-20 p-12 rounded-[3rem] bg-charcoal text-cream-50 relative overflow-hidden group shadow-premium">
+           <div className="absolute top-0 right-0 w-64 h-64 bg-accent-soft/20 rounded-full blur-[100px] -mr-32 -mt-32 transition-transform duration-700 group-hover:scale-125" />
+           <div className="relative z-10 space-y-6">
+              <span className="font-headline text-[10px] uppercase font-bold tracking-[0.4em] text-accent-soft px-4 py-2 border border-accent-soft/20 rounded-full">Interactive Synthesis</span>
+              <h3 className="text-4xl md:text-5xl font-headline font-bold leading-tight">Ready to map your own <br />research frontiers?</h3>
+              <p className="text-cream-50/60 text-lg max-w-xl font-body leading-relaxed">
+                 Don't just read about synthesis. Launch your own agentic workflow and identify the gaps in your field today.
+              </p>
+              <div className="pt-6">
+                 <Link href="/lab" className="btn-primary !rounded-2xl !px-10 !py-5 text-xl flex items-center justify-center gap-4 w-full sm:w-auto hover:shadow-accent text-center bg-accent-soft">
+                    <span className="material-symbols-outlined">biotech</span>
+                    Start Live Analysis
+                 </Link>
+              </div>
+           </div>
+        </div>
       </article>
 
       {/* Recommended Reading Footer */}
